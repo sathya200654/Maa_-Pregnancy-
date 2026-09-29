@@ -1,0 +1,2035 @@
+{
+  "version": "2.0",
+  "title": "Pregnancy Weekly Insights",
+  "description": "Structured pregnancy insights for weeks 1 through 40. Each week contains five repeatable insight types for AI/app retrieval.",
+  "total_weeks": 40,
+  "insights_per_week": 5,
+  "total_insights": 200,
+  "trimester_ranges": {
+    "1": {
+      "weeks": "1-13"
+    },
+    "2": {
+      "weeks": "14-27"
+    },
+    "3": {
+      "weeks": "28-40"
+    }
+  },
+  "categories": [
+    "baby_development",
+    "nutrition",
+    "wellness",
+    "safety",
+    "appointments"
+  ],
+  "retrieval_rules": [
+    "Retrieve by exact pregnancy week.",
+    "Use category to select a specific insight type.",
+    "Do not use a later week's developmental insight for an earlier week.",
+    "Safety insights are educational and should not be used for diagnosis.",
+    "For urgent symptoms, direct the user to their healthcare provider or appropriate emergency care."
+  ],
+  "insights": [
+    {
+      "id": "W01-BABY_DEVELOPMENT",
+      "week": 1,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Your pregnancy journey begins",
+      "insight": "Your body is beginning the early process that supports pregnancy.",
+      "priority": "normal"
+    },
+    {
+      "id": "W01-NUTRITION",
+      "week": 1,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Start with folic acid",
+      "insight": "Folic acid is especially important in early pregnancy. Follow your healthcare provider's advice on supplementation.",
+      "priority": "normal"
+    },
+    {
+      "id": "W01-WELLNESS",
+      "week": 1,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Listen to your body",
+      "insight": "Early pregnancy can bring changes in energy and mood. Give yourself time to rest.",
+      "priority": "normal"
+    },
+    {
+      "id": "W01-SAFETY",
+      "week": 1,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid harmful substances",
+      "insight": "Avoid alcohol, smoking, and recreational drugs during pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W01-APPOINTMENTS",
+      "week": 1,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Plan early prenatal care",
+      "insight": "Arrange prenatal care and discuss your health history, medications, and supplements with your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W02-BABY_DEVELOPMENT",
+      "week": 2,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Early development",
+      "insight": "The earliest structures that will support your baby's development are beginning to form.",
+      "priority": "normal"
+    },
+    {
+      "id": "W02-NUTRITION",
+      "week": 2,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Build balanced meals",
+      "insight": "Aim for a varied diet that includes fruits, vegetables, whole grains, protein, and healthy fats.",
+      "priority": "normal"
+    },
+    {
+      "id": "W02-WELLNESS",
+      "week": 2,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Stay hydrated",
+      "insight": "Drink fluids regularly throughout the day unless your healthcare provider advises otherwise.",
+      "priority": "normal"
+    },
+    {
+      "id": "W02-SAFETY",
+      "week": 2,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Review medications",
+      "insight": "Check with your healthcare provider before starting, stopping, or changing medicines.",
+      "priority": "important"
+    },
+    {
+      "id": "W02-APPOINTMENTS",
+      "week": 2,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Keep prenatal care in mind",
+      "insight": "Early prenatal care helps your healthcare team monitor your health and pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W03-BABY_DEVELOPMENT",
+      "week": 3,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Rapid early development",
+      "insight": "Early pregnancy development is progressing quickly, even before visible physical changes.",
+      "priority": "normal"
+    },
+    {
+      "id": "W03-NUTRITION",
+      "week": 3,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Small meals may help",
+      "insight": "If nausea appears, smaller and more frequent meals may be easier to tolerate.",
+      "priority": "normal"
+    },
+    {
+      "id": "W03-WELLNESS",
+      "week": 3,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Rest when tired",
+      "insight": "Fatigue can be common in early pregnancy. Make rest part of your routine.",
+      "priority": "normal"
+    },
+    {
+      "id": "W03-SAFETY",
+      "week": 3,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Practice food safety",
+      "insight": "Wash produce well and avoid foods that are raw, undercooked, or otherwise unsafe during pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W03-APPOINTMENTS",
+      "week": 3,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Prepare questions",
+      "insight": "Write down questions, symptoms, and medications to discuss at your prenatal visit.",
+      "priority": "important"
+    },
+    {
+      "id": "W04-BABY_DEVELOPMENT",
+      "week": 4,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Early structures are forming",
+      "insight": "Important early pregnancy structures are continuing to develop.",
+      "priority": "normal"
+    },
+    {
+      "id": "W04-NUTRITION",
+      "week": 4,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Choose nutrient-rich foods",
+      "insight": "Choose foods that provide protein, iron, folate, calcium, and other essential nutrients.",
+      "priority": "normal"
+    },
+    {
+      "id": "W04-WELLNESS",
+      "week": 4,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Be gentle with yourself",
+      "insight": "Hormonal changes can affect how you feel. Give yourself permission to slow down when needed.",
+      "priority": "normal"
+    },
+    {
+      "id": "W04-SAFETY",
+      "week": 4,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Choose pasteurized foods",
+      "insight": "Choose pasteurized milk and dairy products to reduce the risk of foodborne infections.",
+      "priority": "important"
+    },
+    {
+      "id": "W04-APPOINTMENTS",
+      "week": 4,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Begin prenatal monitoring",
+      "insight": "Follow the prenatal appointment schedule recommended by your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W05-BABY_DEVELOPMENT",
+      "week": 5,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Heart development begins",
+      "insight": "Your baby's early heart and circulatory system are developing.",
+      "priority": "normal"
+    },
+    {
+      "id": "W05-NUTRITION",
+      "week": 5,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep snacks available",
+      "insight": "A simple snack can be useful if an empty stomach makes nausea worse.",
+      "priority": "normal"
+    },
+    {
+      "id": "W05-WELLNESS",
+      "week": 5,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Nausea can happen anytime",
+      "insight": "Pregnancy nausea can occur at any time of day, not only in the morning.",
+      "priority": "normal"
+    },
+    {
+      "id": "W05-SAFETY",
+      "week": 5,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid undercooked foods",
+      "insight": "Cook meat, eggs, and seafood thoroughly to reduce foodborne illness risks.",
+      "priority": "important"
+    },
+    {
+      "id": "W05-APPOINTMENTS",
+      "week": 5,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss supplements",
+      "insight": "Ask your healthcare provider whether your prenatal vitamin and supplements meet your needs.",
+      "priority": "important"
+    },
+    {
+      "id": "W06-BABY_DEVELOPMENT",
+      "week": 6,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Brain and spinal cord development",
+      "insight": "Your baby's early nervous system is undergoing important development.",
+      "priority": "normal"
+    },
+    {
+      "id": "W06-NUTRITION",
+      "week": 6,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Pair foods thoughtfully",
+      "insight": "Combining different food groups can make meals more balanced and satisfying.",
+      "priority": "normal"
+    },
+    {
+      "id": "W06-WELLNESS",
+      "week": 6,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Manage nausea gently",
+      "insight": "Fresh air, small meals, and rest may help with nausea for some people.",
+      "priority": "normal"
+    },
+    {
+      "id": "W06-SAFETY",
+      "week": 6,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Use toxoplasmosis precautions",
+      "insight": "Take precautions around cat litter and soil, especially if your healthcare provider recommends them.",
+      "priority": "important"
+    },
+    {
+      "id": "W06-APPOINTMENTS",
+      "week": 6,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Track symptoms",
+      "insight": "Keep note of persistent or unusual symptoms so you can discuss them with your healthcare team.",
+      "priority": "important"
+    },
+    {
+      "id": "W07-BABY_DEVELOPMENT",
+      "week": 7,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Development continues",
+      "insight": "Your baby's early body structures continue developing rapidly.",
+      "priority": "normal"
+    },
+    {
+      "id": "W07-NUTRITION",
+      "week": 7,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Focus on hydration",
+      "insight": "Regular fluids can help support your changing body, especially if nausea or vomiting is present.",
+      "priority": "normal"
+    },
+    {
+      "id": "W07-WELLNESS",
+      "week": 7,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Protect your energy",
+      "insight": "Prioritize sleep and rest when fatigue is strong.",
+      "priority": "normal"
+    },
+    {
+      "id": "W07-SAFETY",
+      "week": 7,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Wash your hands",
+      "insight": "Good hand hygiene helps reduce the spread of infections during pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W07-APPOINTMENTS",
+      "week": 7,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Stay connected with care",
+      "insight": "Contact your healthcare provider if you have questions about symptoms or medications.",
+      "priority": "important"
+    },
+    {
+      "id": "W08-BABY_DEVELOPMENT",
+      "week": 8,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Early body systems develop",
+      "insight": "Your baby's developing organs and body systems are becoming increasingly organized.",
+      "priority": "normal"
+    },
+    {
+      "id": "W08-NUTRITION",
+      "week": 8,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Include protein",
+      "insight": "Beans, eggs, dairy, nuts, and well-cooked meats can contribute protein to a balanced diet.",
+      "priority": "normal"
+    },
+    {
+      "id": "W08-WELLNESS",
+      "week": 8,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Mood changes can happen",
+      "insight": "Hormonal changes can affect emotions. Reach out to someone you trust if you need support.",
+      "priority": "normal"
+    },
+    {
+      "id": "W08-SAFETY",
+      "week": 8,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid smoking exposure",
+      "insight": "Avoid smoking and secondhand smoke as much as possible during pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W08-APPOINTMENTS",
+      "week": 8,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Follow your care plan",
+      "insight": "Prenatal visits help your healthcare team follow your pregnancy and address concerns early.",
+      "priority": "important"
+    },
+    {
+      "id": "W09-BABY_DEVELOPMENT",
+      "week": 9,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Body structures mature",
+      "insight": "Your baby's basic body structures continue forming and maturing.",
+      "priority": "normal"
+    },
+    {
+      "id": "W09-NUTRITION",
+      "week": 9,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Support digestion",
+      "insight": "Fiber-rich foods and adequate fluids may help with constipation.",
+      "priority": "normal"
+    },
+    {
+      "id": "W09-WELLNESS",
+      "week": 9,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Gentle movement",
+      "insight": "If medically appropriate, light activity such as walking can support general wellbeing.",
+      "priority": "normal"
+    },
+    {
+      "id": "W09-SAFETY",
+      "week": 9,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Ask before taking medicine",
+      "insight": "Even common over-the-counter medicines should be checked with your healthcare provider during pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W09-APPOINTMENTS",
+      "week": 9,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Ask about screening",
+      "insight": "Your healthcare provider can explain which prenatal screening options may be appropriate for you.",
+      "priority": "important"
+    },
+    {
+      "id": "W10-BABY_DEVELOPMENT",
+      "week": 10,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Growth continues",
+      "insight": "Your baby's development continues rapidly during this stage of pregnancy.",
+      "priority": "normal"
+    },
+    {
+      "id": "W10-NUTRITION",
+      "week": 10,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Add iron-rich foods",
+      "insight": "Include iron-rich foods such as beans, leafy greens, fortified grains, or well-cooked meats.",
+      "priority": "normal"
+    },
+    {
+      "id": "W10-WELLNESS",
+      "week": 10,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Keep resting",
+      "insight": "Fatigue may still be present. Rest whenever your body signals that you need it.",
+      "priority": "normal"
+    },
+    {
+      "id": "W10-SAFETY",
+      "week": 10,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Food hygiene matters",
+      "insight": "Keep raw and cooked foods separate and follow safe food preparation practices.",
+      "priority": "important"
+    },
+    {
+      "id": "W10-APPOINTMENTS",
+      "week": 10,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Review your symptoms",
+      "insight": "Share persistent nausea, vomiting, pain, or other concerns with your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W11-BABY_DEVELOPMENT",
+      "week": 11,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby is growing",
+      "insight": "Your baby's body continues to grow and develop as the first trimester progresses.",
+      "priority": "normal"
+    },
+    {
+      "id": "W11-NUTRITION",
+      "week": 11,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Vitamin C supports iron absorption",
+      "insight": "Vitamin C-rich foods can help your body absorb iron from plant-based foods.",
+      "priority": "normal"
+    },
+    {
+      "id": "W11-WELLNESS",
+      "week": 11,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Take breaks",
+      "insight": "Short rest periods during the day can help when energy levels fluctuate.",
+      "priority": "normal"
+    },
+    {
+      "id": "W11-SAFETY",
+      "week": 11,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Be cautious with chemicals",
+      "insight": "Follow workplace and household safety guidance around strong chemicals and fumes.",
+      "priority": "important"
+    },
+    {
+      "id": "W11-APPOINTMENTS",
+      "week": 11,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Keep appointments",
+      "insight": "Regular prenatal care helps monitor both maternal and fetal wellbeing.",
+      "priority": "important"
+    },
+    {
+      "id": "W12-BABY_DEVELOPMENT",
+      "week": 12,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "First trimester milestone",
+      "insight": "Your baby's development has progressed significantly through the first trimester.",
+      "priority": "normal"
+    },
+    {
+      "id": "W12-NUTRITION",
+      "week": 12,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep meals varied",
+      "insight": "A varied diet helps provide a broad range of nutrients for you and your growing baby.",
+      "priority": "normal"
+    },
+    {
+      "id": "W12-WELLNESS",
+      "week": 12,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Celebrate your progress",
+      "insight": "Take a moment to acknowledge the changes your body has handled during the first trimester.",
+      "priority": "normal"
+    },
+    {
+      "id": "W12-SAFETY",
+      "week": 12,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Protect yourself from infections",
+      "insight": "Good hygiene and food safety remain important throughout pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W12-APPOINTMENTS",
+      "week": 12,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss upcoming tests",
+      "insight": "Ask your healthcare provider what examinations or screening tests are planned next.",
+      "priority": "important"
+    },
+    {
+      "id": "W13-BABY_DEVELOPMENT",
+      "week": 13,
+      "trimester": 1,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Approaching trimester two",
+      "insight": "Your baby is continuing to grow as the first trimester comes to an end.",
+      "priority": "normal"
+    },
+    {
+      "id": "W13-NUTRITION",
+      "week": 13,
+      "trimester": 1,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep iron in your diet",
+      "insight": "Continue including iron-rich foods and follow your provider's advice about supplements.",
+      "priority": "normal"
+    },
+    {
+      "id": "W13-WELLNESS",
+      "week": 13,
+      "trimester": 1,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Notice changing symptoms",
+      "insight": "Some early pregnancy symptoms may begin to ease, although every pregnancy is different.",
+      "priority": "normal"
+    },
+    {
+      "id": "W13-SAFETY",
+      "week": 13,
+      "trimester": 1,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Keep medication guidance current",
+      "insight": "Continue checking medicines and supplements with your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W13-APPOINTMENTS",
+      "week": 13,
+      "trimester": 1,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Prepare for the next stage",
+      "insight": "Use your next prenatal visit to discuss symptoms, nutrition, activity, and upcoming care.",
+      "priority": "important"
+    },
+    {
+      "id": "W14-BABY_DEVELOPMENT",
+      "week": 14,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Second trimester begins",
+      "insight": "Your baby is entering a period of continued growth and development.",
+      "priority": "normal"
+    },
+    {
+      "id": "W14-NUTRITION",
+      "week": 14,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Build balanced plates",
+      "insight": "Try to include vegetables or fruit, whole grains, protein, and healthy fats across your meals.",
+      "priority": "normal"
+    },
+    {
+      "id": "W14-WELLNESS",
+      "week": 14,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Energy may improve",
+      "insight": "Many people experience improved energy in the second trimester, although experiences vary.",
+      "priority": "normal"
+    },
+    {
+      "id": "W14-SAFETY",
+      "week": 14,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Stay active safely",
+      "insight": "Choose pregnancy-appropriate activities and avoid those with significant fall or abdominal-trauma risks.",
+      "priority": "important"
+    },
+    {
+      "id": "W14-APPOINTMENTS",
+      "week": 14,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Continue prenatal care",
+      "insight": "Keep your scheduled prenatal appointments even when you are feeling well.",
+      "priority": "important"
+    },
+    {
+      "id": "W15-BABY_DEVELOPMENT",
+      "week": 15,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Bones are developing",
+      "insight": "Your baby's bones continue developing and strengthening.",
+      "priority": "normal"
+    },
+    {
+      "id": "W15-NUTRITION",
+      "week": 15,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Support bone health",
+      "insight": "Include calcium-rich foods such as dairy, fortified foods, or suitable alternatives.",
+      "priority": "normal"
+    },
+    {
+      "id": "W15-WELLNESS",
+      "week": 15,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Stay comfortably active",
+      "insight": "Gentle walking or other approved activities can support fitness and wellbeing.",
+      "priority": "normal"
+    },
+    {
+      "id": "W15-SAFETY",
+      "week": 15,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Protect against falls",
+      "insight": "Use care on uneven surfaces and choose stable, comfortable footwear.",
+      "priority": "important"
+    },
+    {
+      "id": "W15-APPOINTMENTS",
+      "week": 15,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Ask about screening",
+      "insight": "Your healthcare provider can explain any screening or monitoring recommended at this stage.",
+      "priority": "important"
+    },
+    {
+      "id": "W16-BABY_DEVELOPMENT",
+      "week": 16,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Facial features develop",
+      "insight": "Your baby's facial features are becoming increasingly developed.",
+      "priority": "normal"
+    },
+    {
+      "id": "W16-NUTRITION",
+      "week": 16,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Choose whole grains",
+      "insight": "Whole grains can provide fiber and important nutrients during pregnancy.",
+      "priority": "normal"
+    },
+    {
+      "id": "W16-WELLNESS",
+      "week": 16,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Try gentle stretching",
+      "insight": "Pregnancy-appropriate stretching may help you stay comfortable as your body changes.",
+      "priority": "normal"
+    },
+    {
+      "id": "W16-SAFETY",
+      "week": 16,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid risky activities",
+      "insight": "Avoid activities with a high risk of falling or abdominal injury.",
+      "priority": "important"
+    },
+    {
+      "id": "W16-APPOINTMENTS",
+      "week": 16,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Share discomforts",
+      "insight": "Discuss persistent back pain, cramps, or other discomforts with your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W17-BABY_DEVELOPMENT",
+      "week": 17,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby's movements begin to develop",
+      "insight": "Your baby is becoming more active, although you may not feel movement yet.",
+      "priority": "normal"
+    },
+    {
+      "id": "W17-NUTRITION",
+      "week": 17,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep protein in meals",
+      "insight": "Include a variety of protein sources throughout the week.",
+      "priority": "normal"
+    },
+    {
+      "id": "W17-WELLNESS",
+      "week": 17,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Sleep comfortably",
+      "insight": "Use pillows and adjust your position to support comfortable sleep.",
+      "priority": "normal"
+    },
+    {
+      "id": "W17-SAFETY",
+      "week": 17,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Stay hydrated during activity",
+      "insight": "Drink fluids regularly, especially around physical activity.",
+      "priority": "important"
+    },
+    {
+      "id": "W17-APPOINTMENTS",
+      "week": 17,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Ask about movement",
+      "insight": "Ask your healthcare provider when you should expect to notice fetal movement.",
+      "priority": "important"
+    },
+    {
+      "id": "W18-BABY_DEVELOPMENT",
+      "week": 18,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Movement may become noticeable",
+      "insight": "Some people begin noticing early fetal movement around this period, while timing varies.",
+      "priority": "normal"
+    },
+    {
+      "id": "W18-NUTRITION",
+      "week": 18,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Include healthy fats",
+      "insight": "Nuts, seeds, and suitable oils can be part of a balanced pregnancy diet.",
+      "priority": "normal"
+    },
+    {
+      "id": "W18-WELLNESS",
+      "week": 18,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Enjoy bonding time",
+      "insight": "Talking, reading, or singing to your baby can be a meaningful bonding activity.",
+      "priority": "normal"
+    },
+    {
+      "id": "W18-SAFETY",
+      "week": 18,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Use safe food choices",
+      "insight": "Continue avoiding raw or undercooked foods and unpasteurized products.",
+      "priority": "important"
+    },
+    {
+      "id": "W18-APPOINTMENTS",
+      "week": 18,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Prepare for the anatomy scan",
+      "insight": "Ask your healthcare provider about the timing and purpose of the anatomy ultrasound.",
+      "priority": "important"
+    },
+    {
+      "id": "W19-BABY_DEVELOPMENT",
+      "week": 19,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby responds to sound",
+      "insight": "As development progresses, your baby can increasingly respond to sounds.",
+      "priority": "normal"
+    },
+    {
+      "id": "W19-NUTRITION",
+      "week": 19,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep calcium and vitamin D in mind",
+      "insight": "Ask your healthcare provider about your calcium and vitamin D needs.",
+      "priority": "normal"
+    },
+    {
+      "id": "W19-WELLNESS",
+      "week": 19,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Support your back",
+      "insight": "Your changing posture can affect your back. Move comfortably and avoid unnecessary strain.",
+      "priority": "normal"
+    },
+    {
+      "id": "W19-SAFETY",
+      "week": 19,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Lift carefully",
+      "insight": "Avoid heavy lifting if it causes discomfort or if your healthcare provider has advised against it.",
+      "priority": "important"
+    },
+    {
+      "id": "W19-APPOINTMENTS",
+      "week": 19,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Attend your detailed scan",
+      "insight": "If your anatomy ultrasound is scheduled, follow your provider's instructions for the appointment.",
+      "priority": "important"
+    },
+    {
+      "id": "W20-BABY_DEVELOPMENT",
+      "week": 20,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Halfway milestone",
+      "insight": "Around the middle of pregnancy, your baby continues growing and becoming more active.",
+      "priority": "normal"
+    },
+    {
+      "id": "W20-NUTRITION",
+      "week": 20,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Choose colorful foods",
+      "insight": "A variety of fruits and vegetables can provide many different vitamins, minerals, and antioxidants.",
+      "priority": "normal"
+    },
+    {
+      "id": "W20-WELLNESS",
+      "week": 20,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Check your posture",
+      "insight": "As your belly grows, changing posture can affect comfort. Move slowly and comfortably.",
+      "priority": "normal"
+    },
+    {
+      "id": "W20-SAFETY",
+      "week": 20,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Use supportive footwear",
+      "insight": "Comfortable, supportive shoes may make walking easier as your body changes.",
+      "priority": "important"
+    },
+    {
+      "id": "W20-APPOINTMENTS",
+      "week": 20,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Mid-pregnancy care",
+      "insight": "Continue following the prenatal schedule recommended by your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W21-BABY_DEVELOPMENT",
+      "week": 21,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Bones continue strengthening",
+      "insight": "Your baby's skeletal system continues developing.",
+      "priority": "normal"
+    },
+    {
+      "id": "W21-NUTRITION",
+      "week": 21,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Iron remains important",
+      "insight": "Your expanding blood volume increases the importance of adequate iron intake.",
+      "priority": "normal"
+    },
+    {
+      "id": "W21-WELLNESS",
+      "week": 21,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Take movement breaks",
+      "insight": "Gentle movement and position changes can help reduce stiffness during the day.",
+      "priority": "normal"
+    },
+    {
+      "id": "W21-SAFETY",
+      "week": 21,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid prolonged overheating",
+      "insight": "Take care in hot environments and stay hydrated during physical activity.",
+      "priority": "important"
+    },
+    {
+      "id": "W21-APPOINTMENTS",
+      "week": 21,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss blood tests",
+      "insight": "Ask your healthcare provider which routine blood tests or checks are planned next.",
+      "priority": "important"
+    },
+    {
+      "id": "W22-BABY_DEVELOPMENT",
+      "week": 22,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby's senses develop",
+      "insight": "Your baby's sensory systems continue developing as pregnancy progresses.",
+      "priority": "normal"
+    },
+    {
+      "id": "W22-NUTRITION",
+      "week": 22,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Combine iron with vitamin C",
+      "insight": "Pair iron-rich plant foods with vitamin C-rich foods to support iron absorption.",
+      "priority": "normal"
+    },
+    {
+      "id": "W22-WELLNESS",
+      "week": 22,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Make sleep comfortable",
+      "insight": "Use pillows for support and create a relaxing bedtime routine.",
+      "priority": "normal"
+    },
+    {
+      "id": "W22-SAFETY",
+      "week": 22,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Monitor unusual symptoms",
+      "insight": "Contact your healthcare provider about symptoms that are severe, persistent, or unusual for you.",
+      "priority": "important"
+    },
+    {
+      "id": "W22-APPOINTMENTS",
+      "week": 22,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Keep monitoring visits",
+      "insight": "Prenatal visits help your care team monitor your health and your baby's growth.",
+      "priority": "important"
+    },
+    {
+      "id": "W23-BABY_DEVELOPMENT",
+      "week": 23,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Lungs continue developing",
+      "insight": "Your baby's lungs are continuing to develop but are not yet fully mature.",
+      "priority": "normal"
+    },
+    {
+      "id": "W23-NUTRITION",
+      "week": 23,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Stay nourished",
+      "insight": "Continue eating regular, balanced meals to support your changing nutritional needs.",
+      "priority": "normal"
+    },
+    {
+      "id": "W23-WELLNESS",
+      "week": 23,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Manage back discomfort",
+      "insight": "Gentle movement and good posture may help with common pregnancy-related back discomfort.",
+      "priority": "normal"
+    },
+    {
+      "id": "W23-SAFETY",
+      "week": 23,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Know your warning signs",
+      "insight": "Ask your healthcare provider which symptoms require urgent assessment at your stage of pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W23-APPOINTMENTS",
+      "week": 23,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss glucose screening",
+      "insight": "Your healthcare provider may discuss glucose screening and other routine checks around this period.",
+      "priority": "important"
+    },
+    {
+      "id": "W24-BABY_DEVELOPMENT",
+      "week": 24,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Movement becomes clearer",
+      "insight": "Your baby's movements may become more noticeable as your baby grows.",
+      "priority": "normal"
+    },
+    {
+      "id": "W24-NUTRITION",
+      "week": 24,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep fiber in your diet",
+      "insight": "Fiber-rich foods can support digestion as pregnancy progresses.",
+      "priority": "normal"
+    },
+    {
+      "id": "W24-WELLNESS",
+      "week": 24,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Rest your legs",
+      "insight": "If your feet or legs feel tired, take comfortable breaks and elevate them when appropriate.",
+      "priority": "normal"
+    },
+    {
+      "id": "W24-SAFETY",
+      "week": 24,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Report significant swelling",
+      "insight": "Sudden or significant swelling should be discussed promptly with your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W24-APPOINTMENTS",
+      "week": 24,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Ask about fetal movement",
+      "insight": "Learn how your healthcare provider wants you to monitor your baby's movements.",
+      "priority": "important"
+    },
+    {
+      "id": "W25-BABY_DEVELOPMENT",
+      "week": 25,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Brain development continues",
+      "insight": "Your baby's brain continues developing rapidly during the second trimester.",
+      "priority": "normal"
+    },
+    {
+      "id": "W25-NUTRITION",
+      "week": 25,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Include protein regularly",
+      "insight": "Protein-rich foods can help meet the increased nutritional demands of pregnancy.",
+      "priority": "normal"
+    },
+    {
+      "id": "W25-WELLNESS",
+      "week": 25,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Stretch gently",
+      "insight": "Gentle, pregnancy-appropriate stretching may help with muscle comfort.",
+      "priority": "normal"
+    },
+    {
+      "id": "W25-SAFETY",
+      "week": 25,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid abdominal trauma",
+      "insight": "Choose activities that minimize the risk of falls or direct impact to your abdomen.",
+      "priority": "important"
+    },
+    {
+      "id": "W25-APPOINTMENTS",
+      "week": 25,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Follow screening advice",
+      "insight": "Complete recommended prenatal screening and discuss the results with your healthcare provider.",
+      "priority": "important"
+    },
+    {
+      "id": "W26-BABY_DEVELOPMENT",
+      "week": 26,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby responds to sounds",
+      "insight": "Your baby continues developing hearing and responding to sounds.",
+      "priority": "normal"
+    },
+    {
+      "id": "W26-NUTRITION",
+      "week": 26,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep fluids nearby",
+      "insight": "Regular hydration can be especially helpful as pregnancy advances.",
+      "priority": "normal"
+    },
+    {
+      "id": "W26-WELLNESS",
+      "week": 26,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Prioritize sleep",
+      "insight": "Make your sleep environment comfortable and allow extra rest when needed.",
+      "priority": "normal"
+    },
+    {
+      "id": "W26-SAFETY",
+      "week": 26,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Continue food safety",
+      "insight": "Avoid high-risk raw, undercooked, or unpasteurized foods during pregnancy.",
+      "priority": "important"
+    },
+    {
+      "id": "W26-APPOINTMENTS",
+      "week": 26,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Review your birth preparation",
+      "insight": "You can begin discussing what to expect during the final trimester with your care team.",
+      "priority": "important"
+    },
+    {
+      "id": "W27-BABY_DEVELOPMENT",
+      "week": 27,
+      "trimester": 2,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Third trimester is near",
+      "insight": "Your baby is preparing for a major period of growth and maturation.",
+      "priority": "normal"
+    },
+    {
+      "id": "W27-NUTRITION",
+      "week": 27,
+      "trimester": 2,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep meals nutrient-dense",
+      "insight": "Choose foods that provide protein, iron, calcium, fiber, and other key nutrients.",
+      "priority": "normal"
+    },
+    {
+      "id": "W27-WELLNESS",
+      "week": 27,
+      "trimester": 2,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Prepare for changing comfort",
+      "insight": "Your growing belly may affect sleep, posture, and movement. Adjust routines as needed.",
+      "priority": "normal"
+    },
+    {
+      "id": "W27-SAFETY",
+      "week": 27,
+      "trimester": 2,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Know when to call",
+      "insight": "Make sure you know which symptoms your healthcare provider wants you to report urgently.",
+      "priority": "important"
+    },
+    {
+      "id": "W27-APPOINTMENTS",
+      "week": 27,
+      "trimester": 2,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Prepare for trimester three",
+      "insight": "Ask what changes to expect in appointment frequency and monitoring during the third trimester.",
+      "priority": "important"
+    },
+    {
+      "id": "W28-BABY_DEVELOPMENT",
+      "week": 28,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Third trimester begins",
+      "insight": "Your baby is entering a major period of growth, brain development, and maturation.",
+      "priority": "normal"
+    },
+    {
+      "id": "W28-NUTRITION",
+      "week": 28,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Support steady nutrition",
+      "insight": "Continue eating balanced meals and following your provider's nutritional advice.",
+      "priority": "normal"
+    },
+    {
+      "id": "W28-WELLNESS",
+      "week": 28,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Rest is valuable",
+      "insight": "The third trimester can be physically demanding. Build regular rest into your day.",
+      "priority": "normal"
+    },
+    {
+      "id": "W28-SAFETY",
+      "week": 28,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Monitor fetal movement",
+      "insight": "Learn and follow your healthcare provider's guidance for monitoring your baby's movements.",
+      "priority": "important"
+    },
+    {
+      "id": "W28-APPOINTMENTS",
+      "week": 28,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Keep regular visits",
+      "insight": "Prenatal appointments become increasingly important as pregnancy progresses.",
+      "priority": "important"
+    },
+    {
+      "id": "W29-BABY_DEVELOPMENT",
+      "week": 29,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Brain development accelerates",
+      "insight": "Your baby's brain continues developing rapidly.",
+      "priority": "normal"
+    },
+    {
+      "id": "W29-NUTRITION",
+      "week": 29,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Choose iron-rich foods",
+      "insight": "Continue including iron-rich foods and follow your provider's advice about iron supplements.",
+      "priority": "normal"
+    },
+    {
+      "id": "W29-WELLNESS",
+      "week": 29,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Manage breathlessness",
+      "insight": "Shortness of breath can occur as the uterus grows. Move at a comfortable pace.",
+      "priority": "normal"
+    },
+    {
+      "id": "W29-SAFETY",
+      "week": 29,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Seek help for severe symptoms",
+      "insight": "Severe or worsening symptoms should be discussed promptly with your healthcare provider.",
+      "priority": "urgent"
+    },
+    {
+      "id": "W29-APPOINTMENTS",
+      "week": 29,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Review fetal movement guidance",
+      "insight": "Make sure you understand how and when to contact your provider about changes in movement.",
+      "priority": "important"
+    },
+    {
+      "id": "W30-BABY_DEVELOPMENT",
+      "week": 30,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby continues gaining weight",
+      "insight": "Your baby continues building body fat and gaining weight.",
+      "priority": "normal"
+    },
+    {
+      "id": "W30-NUTRITION",
+      "week": 30,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Try smaller meals",
+      "insight": "Smaller meals may be more comfortable if fullness or heartburn is bothering you.",
+      "priority": "normal"
+    },
+    {
+      "id": "W30-WELLNESS",
+      "week": 30,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Support comfortable sleep",
+      "insight": "Use pillows to support your abdomen, back, or legs if that improves comfort.",
+      "priority": "normal"
+    },
+    {
+      "id": "W30-SAFETY",
+      "week": 30,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Avoid lying down after large meals",
+      "insight": "If you experience heartburn, staying upright after meals may help.",
+      "priority": "important"
+    },
+    {
+      "id": "W30-APPOINTMENTS",
+      "week": 30,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Stay consistent with care",
+      "insight": "Continue your scheduled prenatal visits and follow any monitoring instructions.",
+      "priority": "important"
+    },
+    {
+      "id": "W31-BABY_DEVELOPMENT",
+      "week": 31,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Lungs continue maturing",
+      "insight": "Your baby's lungs and other organs continue preparing for life outside the womb.",
+      "priority": "normal"
+    },
+    {
+      "id": "W31-NUTRITION",
+      "week": 31,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep calcium-rich foods",
+      "insight": "Calcium remains important for your baby's developing bones and teeth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W31-WELLNESS",
+      "week": 31,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Move gently",
+      "insight": "Gentle activity can help maintain strength and mobility when medically appropriate.",
+      "priority": "normal"
+    },
+    {
+      "id": "W31-SAFETY",
+      "week": 31,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Move carefully",
+      "insight": "Your changing balance can make some movements harder. Take your time when bending or reaching.",
+      "priority": "important"
+    },
+    {
+      "id": "W31-APPOINTMENTS",
+      "week": 31,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss labor preparation",
+      "insight": "Ask your healthcare team about signs of labor and when they want you to contact them.",
+      "priority": "important"
+    },
+    {
+      "id": "W32-BABY_DEVELOPMENT",
+      "week": 32,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby is growing quickly",
+      "insight": "Your baby continues gaining weight and developing coordination and strength.",
+      "priority": "normal"
+    },
+    {
+      "id": "W32-NUTRITION",
+      "week": 32,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep fiber and fluids up",
+      "insight": "Fiber-rich foods and adequate fluids may help support digestion.",
+      "priority": "normal"
+    },
+    {
+      "id": "W32-WELLNESS",
+      "week": 32,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Take regular breaks",
+      "insight": "Break up long periods of sitting or standing with comfortable movement and rest.",
+      "priority": "normal"
+    },
+    {
+      "id": "W32-SAFETY",
+      "week": 32,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Plan for emergencies",
+      "insight": "Keep important medical information and emergency contact numbers easy to access.",
+      "priority": "important"
+    },
+    {
+      "id": "W32-APPOINTMENTS",
+      "week": 32,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Review your birth plan",
+      "insight": "Discuss your preferences and any questions about labor and delivery with your healthcare team.",
+      "priority": "important"
+    },
+    {
+      "id": "W33-BABY_DEVELOPMENT",
+      "week": 33,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Fat stores increase",
+      "insight": "Your baby continues building fat stores that help with temperature regulation after birth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W33-NUTRITION",
+      "week": 33,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Eat regularly",
+      "insight": "Regular balanced meals can help support your energy during the final weeks.",
+      "priority": "normal"
+    },
+    {
+      "id": "W33-WELLNESS",
+      "week": 33,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Reduce physical strain",
+      "insight": "Use comfortable positions and avoid activities that cause significant pain or strain.",
+      "priority": "normal"
+    },
+    {
+      "id": "W33-SAFETY",
+      "week": 33,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Know labor signs",
+      "insight": "Learn the signs of labor your healthcare provider has asked you to watch for.",
+      "priority": "important"
+    },
+    {
+      "id": "W33-APPOINTMENTS",
+      "week": 33,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Stay on schedule",
+      "insight": "Continue attending prenatal appointments and completing recommended monitoring.",
+      "priority": "important"
+    },
+    {
+      "id": "W34-BABY_DEVELOPMENT",
+      "week": 34,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby may settle head-down",
+      "insight": "Many babies move toward a head-down position as birth approaches, although position can still change.",
+      "priority": "normal"
+    },
+    {
+      "id": "W34-NUTRITION",
+      "week": 34,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep hydration steady",
+      "insight": "Drink fluids regularly unless your healthcare provider has advised otherwise.",
+      "priority": "normal"
+    },
+    {
+      "id": "W34-WELLNESS",
+      "week": 34,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Manage pelvic pressure",
+      "insight": "Pelvic pressure can increase as your baby grows and moves lower. Mention significant discomfort to your provider.",
+      "priority": "normal"
+    },
+    {
+      "id": "W34-SAFETY",
+      "week": 34,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Watch for concerning changes",
+      "insight": "Contact your healthcare provider about significant bleeding, severe pain, or other urgent symptoms.",
+      "priority": "urgent"
+    },
+    {
+      "id": "W34-APPOINTMENTS",
+      "week": 34,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss baby's position",
+      "insight": "Your provider may check your baby's position and discuss what it means for delivery.",
+      "priority": "important"
+    },
+    {
+      "id": "W35-BABY_DEVELOPMENT",
+      "week": 35,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Final maturation continues",
+      "insight": "Your baby's organs continue maturing as the due date approaches.",
+      "priority": "normal"
+    },
+    {
+      "id": "W35-NUTRITION",
+      "week": 35,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep nutrient-rich choices",
+      "insight": "Continue choosing foods that provide protein, iron, calcium, and other important nutrients.",
+      "priority": "normal"
+    },
+    {
+      "id": "W35-WELLNESS",
+      "week": 35,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Rest and prepare",
+      "insight": "Give yourself time to rest while preparing emotionally and practically for birth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W35-SAFETY",
+      "week": 35,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Learn about contractions",
+      "insight": "Ask your healthcare provider how to distinguish your usual Braxton Hicks contractions from signs of labor.",
+      "priority": "important"
+    },
+    {
+      "id": "W35-APPOINTMENTS",
+      "week": 35,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Prepare your questions",
+      "insight": "Use prenatal visits to ask about labor, delivery, pain relief, and newborn care.",
+      "priority": "important"
+    },
+    {
+      "id": "W36-BABY_DEVELOPMENT",
+      "week": 36,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby is nearly ready",
+      "insight": "Your baby continues gaining weight and completing important maturation before birth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W36-NUTRITION",
+      "week": 36,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep meals balanced",
+      "insight": "Continue balanced meals even if your appetite changes because of reduced space in your abdomen.",
+      "priority": "normal"
+    },
+    {
+      "id": "W36-WELLNESS",
+      "week": 36,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Prepare your support system",
+      "insight": "Arrange practical and emotional support for the time around labor and birth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W36-SAFETY",
+      "week": 36,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Prepare your hospital bag",
+      "insight": "Pack essentials and keep important medical information accessible.",
+      "priority": "important"
+    },
+    {
+      "id": "W36-APPOINTMENTS",
+      "week": 36,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss delivery plans",
+      "insight": "Review your delivery preferences and the plan for contacting your healthcare team when labor begins.",
+      "priority": "important"
+    },
+    {
+      "id": "W37-BABY_DEVELOPMENT",
+      "week": 37,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Early term begins",
+      "insight": "At 37 weeks, your baby has reached early term, while development continues right up to birth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W37-NUTRITION",
+      "week": 37,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep nourishing yourself",
+      "insight": "Continue regular meals and hydration while following your healthcare provider's advice.",
+      "priority": "normal"
+    },
+    {
+      "id": "W37-WELLNESS",
+      "week": 37,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Rest when possible",
+      "insight": "Use this time to conserve energy and prepare for the demands of labor and newborn care.",
+      "priority": "normal"
+    },
+    {
+      "id": "W37-SAFETY",
+      "week": 37,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Know when to call",
+      "insight": "Keep your healthcare provider's instructions for contractions, bleeding, fluid leakage, and movement changes close by.",
+      "priority": "urgent"
+    },
+    {
+      "id": "W37-APPOINTMENTS",
+      "week": 37,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Keep late-pregnancy visits",
+      "insight": "Late-pregnancy appointments help your team monitor you and your baby as delivery approaches.",
+      "priority": "important"
+    },
+    {
+      "id": "W38-BABY_DEVELOPMENT",
+      "week": 38,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby continues maturing",
+      "insight": "Your baby continues preparing for life outside the womb while gaining weight.",
+      "priority": "normal"
+    },
+    {
+      "id": "W38-NUTRITION",
+      "week": 38,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Stay hydrated",
+      "insight": "Continue drinking fluids regularly unless your healthcare provider has given different instructions.",
+      "priority": "normal"
+    },
+    {
+      "id": "W38-WELLNESS",
+      "week": 38,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Stay comfortable",
+      "insight": "Use pillows, gentle movement, and rest to manage the physical demands of late pregnancy.",
+      "priority": "normal"
+    },
+    {
+      "id": "W38-SAFETY",
+      "week": 38,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Watch for labor signs",
+      "insight": "Regular contractions that become stronger, longer, and closer together may indicate labor.",
+      "priority": "important"
+    },
+    {
+      "id": "W38-APPOINTMENTS",
+      "week": 38,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Keep your care team informed",
+      "insight": "Contact your healthcare provider according to their instructions when labor signs or other concerns appear.",
+      "priority": "important"
+    },
+    {
+      "id": "W39-BABY_DEVELOPMENT",
+      "week": 39,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Baby is readying for birth",
+      "insight": "Your baby continues final maturation and preparation for life outside the womb.",
+      "priority": "normal"
+    },
+    {
+      "id": "W39-NUTRITION",
+      "week": 39,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Eat what feels comfortable",
+      "insight": "Choose balanced, nourishing foods that are comfortable to eat as your due date approaches.",
+      "priority": "normal"
+    },
+    {
+      "id": "W39-WELLNESS",
+      "week": 39,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Rest and recharge",
+      "insight": "Take opportunities to rest and conserve energy before birth.",
+      "priority": "normal"
+    },
+    {
+      "id": "W39-SAFETY",
+      "week": 39,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Report reduced movement",
+      "insight": "A noticeable decrease in your baby's usual movements requires prompt medical attention.",
+      "priority": "important"
+    },
+    {
+      "id": "W39-APPOINTMENTS",
+      "week": 39,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Follow your provider's plan",
+      "insight": "Continue all scheduled monitoring and follow your healthcare provider's instructions as your due date approaches.",
+      "priority": "important"
+    },
+    {
+      "id": "W40-BABY_DEVELOPMENT",
+      "week": 40,
+      "trimester": 3,
+      "category": "baby_development",
+      "category_label": "Baby Development",
+      "title": "Due date milestone",
+      "insight": "Your estimated due date has arrived, but babies do not always arrive exactly on their due date.",
+      "priority": "normal"
+    },
+    {
+      "id": "W40-NUTRITION",
+      "week": 40,
+      "trimester": 3,
+      "category": "nutrition",
+      "category_label": "Nutrition",
+      "title": "Keep routines steady",
+      "insight": "Continue hydration and balanced meals while following your healthcare provider's advice.",
+      "priority": "normal"
+    },
+    {
+      "id": "W40-WELLNESS",
+      "week": 40,
+      "trimester": 3,
+      "category": "wellness",
+      "category_label": "Wellness",
+      "title": "Be patient with yourself",
+      "insight": "Feeling excited, nervous, or impatient near the due date is completely understandable.",
+      "priority": "normal"
+    },
+    {
+      "id": "W40-SAFETY",
+      "week": 40,
+      "trimester": 3,
+      "category": "safety",
+      "category_label": "Safety",
+      "title": "Know urgent warning signs",
+      "insight": "Seek prompt medical guidance for significant bleeding, severe pain, reduced fetal movement, or other urgent symptoms.",
+      "priority": "urgent"
+    },
+    {
+      "id": "W40-APPOINTMENTS",
+      "week": 40,
+      "trimester": 3,
+      "category": "appointments",
+      "category_label": "Appointments",
+      "title": "Discuss next steps",
+      "insight": "If labor has not started, follow your healthcare provider's plan for monitoring and care after the estimated due date.",
+      "priority": "important"
+    }
+  ]
+}

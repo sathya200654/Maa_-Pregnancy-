@@ -1,0 +1,2506 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useRouter } from "expo-router";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import * as DocumentPicker from "expo-document-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CalendarDays, Camera, ChevronDown, ChevronUp, FileText, Heart, Settings, ShieldCheck, UserRound, Volume2, VolumeX } from "lucide-react-native";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { EmergencySupportButton } from "@/components/EmergencySupportButton";
+import * as Speech from "expo-speech";
+import { speakText, stopSpeaking, localeForLanguage } from "../../src/utils/tts";
+
+import { colors, fonts, shadows } from "@/constants/theme";
+import { useApp } from "@/context/AppContext";
+import { healthFeedItems } from "@/data/healthFeed";
+import {
+  addInsuranceClaimDocument,
+  getClinicianDraft,
+  getInsuranceClaimDocuments,
+  getInsuranceClaims,
+  getInsurancePolicies,
+  getRecentEntriesForReport,
+  getRecentSymptomLogs,
+  saveInsuranceClaim,
+  saveInsurancePolicy,
+  upsertClinicianDraft,
+} from "@/db/helpers";
+import { isValidProfileName, parseDueDateInput, pregnancyWeek, validateDueDate } from "@/services/date";
+import { ClaimStatus, InsuranceClaim, InsuranceClaimDocument, InsurancePolicy } from "@/types";
+import { CheckCircle2, ChevronRight, Lock, LogOut, Sparkles, UserCheck } from "lucide-react-native";
+import { PersonalDiaryModal } from "@/components/PersonalDiaryModal";
+
+const milestones = [
+  { key: "milestone_ultrasound", title: "First Ultrasound", weekNum: 12 },
+  { key: "milestone_anatomy", title: "Anatomy Scan", weekNum: 20 },
+  { key: "milestone_glucose", title: "Glucose Test", weekNum: 24 },
+  { key: "milestone_third_trimester", title: "Third Trimester", weekNum: 28 },
+] as const;
+
+const claimStatuses: ClaimStatus[] = ["draft", "submitted", "in_review", "approved", "rejected"];
+
+function parseNullableNumber(value: string): number | null {
+  if (!value.trim()) return null;
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) return null;
+  return parsed;
+}
+
+function daysUntil(dateValue: string | null): number | null {
+  if (!dateValue) return null;
+  const target = new Date(dateValue);
+  if (Number.isNaN(target.getTime())) return null;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  const diff = target.getTime() - now.getTime();
+  return Math.round(diff / (1000 * 60 * 60 * 24));
+}
+
+function formatDateForStorage(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateForDisplay(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export default function ProfileScreen() {
+  const router = useRouter();
+  const {
+    db,
+    currentUser,
+    profile,
+    reminders,
+    signOut,
+    upsertProfile,
+    upsertReminder,
+    selectedLanguage,
+    t,
+  } = useApp();
+  const [isDiaryOpen, setIsDiaryOpen] = useState(false);
+  const [profileAvatarUri, setProfileAvatarUri] = useState<string | null>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+
+  const userAvatarStorageKey = useMemo(() => {
+    const emailKey = (currentUser?.email || profile?.email || "default").trim().toLowerCase();
+    return `@maa_avatar_${emailKey}`;
+  }, [currentUser?.email, profile?.email]);
+
+  useEffect(() => {
+    AsyncStorage.getItem(userAvatarStorageKey)
+      .then((saved) => {
+        setProfileAvatarUri(saved || null);
+      })
+      .catch(() => undefined);
+  }, [userAvatarStorageKey]);
+
+  const onPickCustomAvatar = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: ["image/*"],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (res.canceled || !res.assets.length) return;
+      const chosen = res.assets[0].uri;
+      setProfileAvatarUri(chosen);
+      await AsyncStorage.setItem(userAvatarStorageKey, chosen);
+      setIsAvatarModalOpen(false);
+    } catch {
+      Alert.alert("Upload Error", "Could not pick image. Please try again.");
+    }
+  };
+
+  const onSelectPresetAvatar = async (presetId: string) => {
+    setProfileAvatarUri(presetId);
+    await AsyncStorage.setItem(userAvatarStorageKey, presetId);
+    setIsAvatarModalOpen(false);
+  };
+
+  const onEmergencyPress = () => {
+    Alert.alert(
+      t("sos_alert_title"),
+      t("sos_alert_body"),
+      [
+        { text: t("cancel"), style: "cancel" },
+        { text: t("confirm"), onPress: () => router.push("/emergency") }
+      ]
+    );
+  };
+
+  const onSignOutPress = () => {
+    if (Platform.OS === "web") {
+      const confirmed = typeof window !== "undefined" ? window.confirm("Are you sure you want to sign out?") : true;
+      if (confirmed) {
+        signOut().then(() => {
+          router.replace("/(onboarding)");
+        });
+      }
+      return;
+    }
+
+    Alert.alert(
+      t("sign_out", "Sign Out"),
+      t("sign_out_confirm", "Are you sure you want to sign out? Your offline logs will be saved on this device."),
+      [
+        { text: t("cancel", "Cancel"), style: "cancel" },
+        {
+          text: t("sign_out", "Sign Out"),
+          style: "destructive",
+          onPress: async () => {
+            await signOut();
+            router.replace("/(onboarding)");
+          },
+        },
+      ]
+    );
+  };
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    name: "",
+    dueDate: "",
+    bloodType: "",
+    doctorName: "",
+    doctorPhone: "",
+    preferredVoice: "",
+  });
+  const [settingsDueDateValue, setSettingsDueDateValue] = useState<Date | null>(null);
+  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+  const [settingsFieldErrors, setSettingsFieldErrors] = useState<Partial<Record<keyof typeof settingsForm, string>>>({});
+  const [settingsError, setSettingsError] = useState("");
+
+  const clearSettingsFieldError = (field: keyof typeof settingsForm) => {
+    setSettingsFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const setSettingsFieldError = (field: keyof typeof settingsForm, message: string) => {
+    setSettingsFieldErrors((current) => ({ ...current, [field]: message }));
+  };
+
+  const validateName = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setSettingsFieldError("name", "Name is required.");
+      return false;
+    }
+
+    if (!isValidProfileName(trimmed)) {
+      setSettingsFieldError("name", "Use only letters, spaces, hyphens, periods, or apostrophes.");
+      return false;
+    }
+
+    clearSettingsFieldError("name");
+    return true;
+  };
+
+  const validateBloodType = (value: string) => {
+    const trimmed = value.trim().toUpperCase();
+    if (!trimmed) {
+      clearSettingsFieldError("bloodType");
+      return true;
+    }
+
+    const validBloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+    if (!validBloodTypes.includes(trimmed)) {
+      setSettingsFieldError("bloodType", "Choose one of: A+, A-, B+, B-, AB+, AB-, O+, O-.");
+      return false;
+    }
+
+    clearSettingsFieldError("bloodType");
+    return true;
+  };
+
+  const validateDoctorName = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      clearSettingsFieldError("doctorName");
+      return true;
+    }
+
+    const nameRegex = /^[a-zA-Z\s\-'\.]+$/;
+    if (!nameRegex.test(trimmed)) {
+      setSettingsFieldError("doctorName", "Use only letters, spaces, hyphens, periods, or apostrophes.");
+      return false;
+    }
+
+    clearSettingsFieldError("doctorName");
+    return true;
+  };
+
+  const validateDoctorPhone = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      clearSettingsFieldError("doctorPhone");
+      return true;
+    }
+
+    const phoneRegex = /^\+?[0-9\s\-\(\)]{7,20}$/;
+    if (!phoneRegex.test(trimmed)) {
+      setSettingsFieldError("doctorPhone", "Enter a valid phone number.");
+      return false;
+    }
+
+    clearSettingsFieldError("doctorPhone");
+    return true;
+  };
+
+  const validatePreferredVoice = () => {
+    clearSettingsFieldError("preferredVoice");
+    return true;
+  };
+
+  const minDueDate = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 1); // Strictly future dates
+    return date;
+  }, []);
+
+  const maxDueDate = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 294);
+    return date;
+  }, []);
+
+  const openSettings = () => {
+    const parsedDueDate = profile?.due_date ? parseDueDateInput(profile.due_date) : null;
+    setSettingsForm({
+      name: profile?.name ?? "",
+      dueDate: profile?.due_date ?? "",
+      bloodType: profile?.blood_type ?? "",
+      doctorName: profile?.doctor_name ?? "",
+      doctorPhone: profile?.doctor_phone ?? "",
+      preferredVoice: profile?.preferred_voice ?? "",
+    });
+    setSettingsDueDateValue(parsedDueDate);
+    setShowDueDatePicker(false);
+    setSettingsError("");
+    setSettingsFieldErrors({});
+    setIsSettingsOpen(true);
+  };
+
+  const onDueDatePickerChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (event.type === "dismissed") {
+      setShowDueDatePicker(false);
+      return;
+    }
+
+    if (!selectedDate) return;
+
+    const normalized = new Date(selectedDate);
+    normalized.setHours(0, 0, 0, 0);
+
+    setSettingsDueDateValue(normalized);
+    setSettingsForm((current) => ({ ...current, dueDate: formatDateForStorage(normalized) }));
+    clearSettingsFieldError("dueDate");
+    setSettingsError("");
+
+    if (Platform.OS !== "ios") {
+      setShowDueDatePicker(false);
+    }
+  };
+
+  const onSaveSettings = async () => {
+    const nextFieldErrors: Partial<Record<keyof typeof settingsForm, string>> = {};
+    const trimmedName = settingsForm.name.trim();
+    const trimmedDate = settingsForm.dueDate.trim();
+
+    if (!validateName(settingsForm.name)) {
+      nextFieldErrors.name = settingsFieldErrors.name ?? "First name is required.";
+    }
+
+    if (!trimmedDate) {
+      setSettingsError("Please enter your name and due date.");
+      nextFieldErrors.dueDate = "Due date is required.";
+      setSettingsFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    const trimmedDoctorName = settingsForm.doctorName.trim();
+    if (!validateDoctorName(settingsForm.doctorName)) {
+      setSettingsError("Doctor's name can only contain letters, spaces, hyphens, periods, or apostrophes.");
+      nextFieldErrors.doctorName = "Use only letters, spaces, hyphens, periods, or apostrophes.";
+      setSettingsFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    const trimmedDoctorPhone = settingsForm.doctorPhone.trim();
+    if (!validateDoctorPhone(settingsForm.doctorPhone)) {
+      setSettingsError("Doctor's phone must be a valid phone number (at least 7 digits).");
+      nextFieldErrors.doctorPhone = "Enter a valid phone number.";
+      setSettingsFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    const trimmedBloodType = settingsForm.bloodType.trim().toUpperCase();
+    if (!validateBloodType(settingsForm.bloodType)) {
+      setSettingsError("Blood Type must be one of: A+, A-, B+, B-, AB+, AB-, O+, O-.");
+      nextFieldErrors.bloodType = "Choose one of: A+, A-, B+, B-, AB+, AB-, O+, O-.";
+      setSettingsFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    const parsedDueDate = settingsDueDateValue ?? parseDueDateInput(trimmedDate);
+    if (!parsedDueDate) {
+      setSettingsError("Please enter a valid due date in YYYY-MM-DD format.");
+      nextFieldErrors.dueDate = "Select a due date from the calendar.";
+      setSettingsFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    const normalizedDueDate = new Date(parsedDueDate);
+    normalizedDueDate.setHours(0, 0, 0, 0);
+
+    if (normalizedDueDate < minDueDate || normalizedDueDate > maxDueDate) {
+      setSettingsError("Due date must be within 42 weeks (294 days) in the future, and not in the past by more than 14 days.");
+      nextFieldErrors.dueDate = "Due date must be within the allowed pregnancy window.";
+      setSettingsFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    try {
+      setSettingsFieldErrors({});
+      await upsertProfile({
+        name: trimmedName,
+        dueDate: trimmedDate,
+        bloodType: trimmedBloodType || undefined,
+        doctorName: trimmedDoctorName || undefined,
+        doctorPhone: trimmedDoctorPhone || undefined,
+        preferredVoice: settingsForm.preferredVoice.trim() || undefined,
+      });
+      setIsSettingsOpen(false);
+      Alert.alert("Success", "Profile updated successfully!");
+    } catch {
+      setSettingsError("Could not update profile. Please try again.");
+    }
+  };
+  const [reportDraft, setReportDraft] = useState({
+    bpSystolic: "",
+    bpDiastolic: "",
+    temperatureC: "",
+    glucoseMgDl: "",
+    medications: "",
+    questions: "",
+  });
+  const [reportSummary, setReportSummary] = useState("");
+  const [reportBusy, setReportBusy] = useState(false);
+  const [isClinicianOpen, setIsClinicianOpen] = useState(false);
+  const [isInsuranceOpen, setIsInsuranceOpen] = useState(false);
+
+  const [policies, setPolicies] = useState<InsurancePolicy[]>([]);
+  const [claims, setClaims] = useState<InsuranceClaim[]>([]);
+  const [claimDocsMap, setClaimDocsMap] = useState<Record<number, InsuranceClaimDocument[]>>({});
+
+  const [policyForm, setPolicyForm] = useState({
+    provider: "",
+    policyNumber: "",
+    maternityCoveragePercent: "80",
+    deductible: "",
+    outOfPocketLimit: "",
+    maternityCoverLimit: "",
+    renewalDate: "",
+  });
+  const [coverageEstimator, setCoverageEstimator] = useState("15000");
+
+  const [claimForm, setClaimForm] = useState({
+    title: "",
+    status: "draft" as ClaimStatus,
+    estimatedAmount: "",
+    submissionDeadline: "",
+    notes: "",
+  });
+
+  const week = profile?.due_date ? pregnancyWeek(profile.due_date) : 0;
+  const displayName = profile?.name?.trim() ? profile.name : "Mama Bear";
+  const weekLabel = week > 0 ? `${week} ${t("weeks_pregnant", "WEEKS PREGNANT")}` : t("set_valid_due_date", "SET A VALID DUE DATE");
+
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const toggleSpeech = async () => {
+    if (isSpeaking) {
+      try {
+        await Speech.stop();
+      } catch {}
+      setIsSpeaking(false);
+      return;
+    }
+    const locale = localeForLanguage(selectedLanguage);
+
+    const safeWeek = Number.isFinite(Number(week)) && !Number.isNaN(Number(week)) ? String(week) : null;
+    const gestationPhrase = safeWeek ? `Week ${safeWeek} pregnant` : "gestational age unknown";
+    const speakPayload = `Profile summary. Name: ${displayName}. ${gestationPhrase}. Doctor: ${profile?.doctor_name || "not assigned"}.`;
+
+    if (isSpeaking) {
+      await stopSpeaking();
+      setIsSpeaking(false);
+      return;
+    }
+
+    setIsSpeaking(true);
+    try {
+      await speakText(speakPayload, locale);
+    } catch (err) {
+      console.debug("TTS speak failed", err);
+      Alert.alert("Audio error", "Could not play speech on this device.");
+    } finally {
+      setIsSpeaking(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      Speech.stop().catch(() => undefined);
+    };
+  }, []);
+
+  const progress = useMemo(() => {
+    if (!profile?.due_date || week <= 0) return 0;
+    return Math.max(2, Math.min(100, Math.round((week / 40) * 100)));
+  }, [week, profile?.due_date]);
+
+  const currentTrimesterTitle = useMemo(() => {
+    if (week <= 13) return t("first_trimester", "First Trimester");
+    if (week <= 27) return t("second_trimester", "Second Trimester");
+    return t("third_trimester", "Third Trimester");
+  }, [week, t]);
+
+  const currentTrimesterRange = useMemo(() => {
+    const wp = t("week_prefix", "WEEK");
+    if (week <= 13) return `${wp} 1 - 13`;
+    if (week <= 27) return `${wp} 14 - 27`;
+    return `${wp} 28 - 40`;
+  }, [week, t]);
+
+  const refreshInsuranceHub = useCallback(async () => {
+    const [nextPolicies, nextClaims] = await Promise.all([getInsurancePolicies(db), getInsuranceClaims(db)]);
+    setPolicies(nextPolicies);
+    setClaims(nextClaims);
+
+    if (nextClaims.length === 0) {
+      setClaimDocsMap({});
+      return;
+    }
+
+    const docsEntries = await Promise.all(
+      nextClaims.map(async (claim) => [claim.id, await getInsuranceClaimDocuments(db, claim.id)] as const)
+    );
+
+    setClaimDocsMap(Object.fromEntries(docsEntries));
+  }, [db]);
+
+  useEffect(() => {
+    const load = async () => {
+      const draft = await getClinicianDraft(db);
+      if (draft) {
+        setReportDraft({
+          bpSystolic: draft.bp_systolic ? String(draft.bp_systolic) : "",
+          bpDiastolic: draft.bp_diastolic ? String(draft.bp_diastolic) : "",
+          temperatureC: draft.temperature_c ? String(draft.temperature_c) : "",
+          glucoseMgDl: draft.glucose_mg_dl ? String(draft.glucose_mg_dl) : "",
+          medications: draft.medications ?? "",
+          questions: draft.questions ?? "",
+        });
+      }
+
+      await refreshInsuranceHub();
+    };
+
+    load().catch(() => undefined);
+  }, [db, refreshInsuranceHub]);
+
+  const onSaveClinicianDraft = async () => {
+    await upsertClinicianDraft(db, {
+      medications: reportDraft.medications,
+      questions: reportDraft.questions,
+      bpSystolic: parseNullableNumber(reportDraft.bpSystolic),
+      bpDiastolic: parseNullableNumber(reportDraft.bpDiastolic),
+      temperatureC: parseNullableNumber(reportDraft.temperatureC),
+      glucoseMgDl: parseNullableNumber(reportDraft.glucoseMgDl),
+    });
+    Alert.alert(t("save", "Saved"), t("clinician_draft_saved", "Clinician report draft saved."));
+  };
+
+  const onGenerateReport = async () => {
+    setReportBusy(true);
+    try {
+      const [entries, symptomLogs] = await Promise.all([
+        getRecentEntriesForReport(db, 14),
+        getRecentSymptomLogs(db, 14),
+      ]);
+
+      const avgWater = entries.length
+        ? (entries.reduce((sum, item) => sum + item.water_glasses, 0) / entries.length).toFixed(1)
+        : "0";
+      const latestWeight = entries.find((item) => item.weight !== null)?.weight;
+
+      const symptomLines = symptomLogs.length
+        ? symptomLogs.slice(0, 8).map((item) => `- ${item.date}: ${item.symptom} (${item.severity})`)
+        : ["- No symptom logs in last 14 days"];
+
+      const notesLines = entries
+        .map((item) => item.notes?.trim())
+        .filter((item): item is string => Boolean(item))
+        .slice(0, 4)
+        .map((note) => `- ${note}`);
+
+      const reportText = [
+        "Maa Clinician Share Report",
+        `Patient: ${displayName}`,
+        `Pregnancy Week: ${week}`,
+        `Generated: ${new Date().toLocaleString()}`,
+        "",
+        "Vitals (latest manual)",
+        `- BP: ${reportDraft.bpSystolic || "--"}/${reportDraft.bpDiastolic || "--"} mmHg`,
+        `- Temperature: ${reportDraft.temperatureC || "--"} C`,
+        `- Glucose: ${reportDraft.glucoseMgDl || "--"} mg/dL`,
+        latestWeight !== undefined && latestWeight !== null ? `- Weight: ${latestWeight} kg` : "- Weight: --",
+        "",
+        "Symptoms (last 14 days)",
+        ...symptomLines,
+        "",
+        "Medication/Supplements",
+        reportDraft.medications.trim() ? reportDraft.medications.trim() : "None noted",
+        "",
+        "Questions for Appointment",
+        reportDraft.questions.trim() ? reportDraft.questions.trim() : "None noted",
+        "",
+        "Daily Summary (last 14 days)",
+        `- Entries logged: ${entries.length}`,
+        `- Avg water intake: ${avgWater} glasses/day`,
+        "",
+        "Recent Notes",
+        ...(notesLines.length ? notesLines : ["- No notes in the recent window"]),
+      ].join("\n");
+
+      setReportSummary(reportText);
+      return reportText;
+    } catch {
+      Alert.alert(t("save_error_title", "Report error"), t("clinician_gen_error", "Could not generate clinician report right now."));
+      return "";
+    } finally {
+      setReportBusy(false);
+    }
+  };
+
+  const onShareReport = async () => {
+    const next = reportSummary.trim() || (await onGenerateReport()).trim();
+    if (!next) return;
+    await Share.share({ message: next });
+  };
+
+  const onSavePolicy = async () => {
+    if (!policyForm.provider.trim() || !policyForm.policyNumber.trim()) {
+      Alert.alert(t("save_error_title", "Missing info"), t("provider_policy_required", "Provider and policy number are required."));
+      return;
+    }
+
+    await saveInsurancePolicy(db, {
+      provider: policyForm.provider,
+      policyNumber: policyForm.policyNumber,
+      maternityCoveragePercent: Number(policyForm.maternityCoveragePercent) || 0,
+      deductible: parseNullableNumber(policyForm.deductible),
+      outOfPocketLimit: parseNullableNumber(policyForm.outOfPocketLimit),
+      maternityCoverLimit: parseNullableNumber(policyForm.maternityCoverLimit),
+      renewalDate: policyForm.renewalDate.trim() || null,
+    });
+
+    await refreshInsuranceHub();
+    Alert.alert(t("save", "Saved"), t("policy_saved", "Insurance policy added."));
+  };
+
+  const onSaveClaim = async () => {
+    if (!claimForm.title.trim()) {
+      Alert.alert(t("save_error_title", "Missing info"), t("claim_title_required", "Claim title is required."));
+      return;
+    }
+
+    await saveInsuranceClaim(db, {
+      policyId: policies[0]?.id ?? null,
+      title: claimForm.title,
+      status: claimForm.status,
+      estimatedAmount: parseNullableNumber(claimForm.estimatedAmount),
+      submissionDeadline: claimForm.submissionDeadline.trim() || null,
+      notes: claimForm.notes,
+    });
+
+    if (claimForm.submissionDeadline.trim()) {
+      const remindAt = new Date(`${claimForm.submissionDeadline.trim()}T09:00:00`).toISOString();
+      await upsertReminder({
+        title: `Insurance claim deadline: ${claimForm.title.trim()}`,
+        remindAt,
+        repeat: "none",
+      });
+    }
+
+    setClaimForm({
+      title: "",
+      status: "draft",
+      estimatedAmount: "",
+      submissionDeadline: "",
+      notes: "",
+    });
+
+    await refreshInsuranceHub();
+    Alert.alert(t("save", "Saved"), t("claim_saved", "Claim saved and reminder scheduled when deadline is set."));
+  };
+
+  const onUploadClaimDocument = async (claimId: number) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        multiple: false,
+        copyToCacheDirectory: true,
+        type: ["application/pdf", "image/*"],
+      });
+
+      if (result.canceled || !result.assets.length) return;
+      const picked = result.assets[0];
+
+      await addInsuranceClaimDocument(db, {
+        claimId,
+        name: picked.name || "Claim document",
+        uri: picked.uri,
+        mimeType: picked.mimeType ?? null,
+      });
+
+      await refreshInsuranceHub();
+      Alert.alert(t("save", "Uploaded"), t("doc_uploaded", "Document attached to claim."));
+    } catch {
+      Alert.alert(t("save_error_title", "Upload error"), t("upload_error", "Could not upload document right now."));
+    }
+  };
+
+  const primaryPolicy = policies[0] ?? null;
+  const expectedExpense = Number(coverageEstimator) || 0;
+  const rawCovered = primaryPolicy ? expectedExpense * (primaryPolicy.maternity_coverage_percent / 100) : 0;
+  const capLimit = primaryPolicy?.maternity_cover_limit ?? null;
+  const cappedCovered = capLimit !== null ? Math.min(rawCovered, capLimit) : rawCovered;
+  const outOfPocketEstimate = Math.max(0, expectedExpense - cappedCovered);
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.headerWrap}>
+        <View style={styles.headerLeft}>
+          <View style={styles.logoCircle}>
+            <Heart size={16} color={colors.white} fill={colors.white} />
+          </View>
+          <View>
+            <Text style={styles.logoText}>Maternal</Text>
+            <View style={styles.aiRow}>
+              <View style={styles.aiDot} />
+              <Text style={styles.aiText}>AI ASSISTANT</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.headerRight}>
+          <LanguageSelector />
+          <EmergencySupportButton onPress={onEmergencyPress} />
+          <TouchableOpacity style={styles.iconPillBtn} onPress={toggleSpeech}>
+            {isSpeaking ? <VolumeX size={16} color={colors.brand} /> : <Volume2 size={16} color={colors.brand} />}
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.avatarSection}>
+        <TouchableOpacity
+          style={styles.avatarWrap}
+          onPress={() => setIsAvatarModalOpen(true)}
+          activeOpacity={0.85}
+          accessibilityLabel="Change profile picture"
+        >
+          {profileAvatarUri && profileAvatarUri.startsWith("preset:") ? (
+            <View style={styles.presetAvatarBox}>
+              <Text style={{ fontSize: 32 }}>
+                {profileAvatarUri === "preset:1" ? "👩‍🍼" : profileAvatarUri === "preset:2" ? "🌸" : profileAvatarUri === "preset:3" ? "💖" : "✨"}
+              </Text>
+            </View>
+          ) : profileAvatarUri ? (
+            <Image source={{ uri: profileAvatarUri }} style={styles.avatarImage} />
+          ) : (
+            <UserRound size={36} color={colors.white} />
+          )}
+          <View style={styles.avatarCameraBadge}>
+            <Camera size={12} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsBtn}
+          onPress={openSettings}
+          accessibilityRole="button"
+          accessibilityLabel="Open profile settings"
+          hitSlop={12}
+        >
+          <Settings size={14} color="#AAB5CB" />
+        </TouchableOpacity>
+
+        <Text style={styles.nameText}>{displayName}</Text>
+        <Text style={styles.weekText}>{weekLabel}</Text>
+      </View>
+
+      <View style={styles.journeyHead}>
+        <Text style={styles.sectionTitle}>{t("your_journey", "YOUR JOURNEY")}</Text>
+        <Text style={styles.completeText}>{progress}% {t("complete_label", "COMPLETE")}</Text>
+      </View>
+
+      <View style={styles.journeyCard}>
+        <View style={styles.progressMetaRow}>
+          <Text style={styles.progressMeta}>{t("week_1", "WEEK 1")}</Text>
+          <Text style={styles.progressCount}>{week} / 40</Text>
+          <Text style={styles.progressMeta}>{t("week_40", "WEEK 40")}</Text>
+        </View>
+
+        <View style={styles.progressBarTrack}>
+          <View style={styles.progressBarBase} />
+          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+        </View>
+
+        <View style={styles.progressLabelsRow}>
+          <Text style={styles.progressLabel}>{t("conception", "CONCEPTION")}</Text>
+          <Text style={styles.progressLabel}>{t("trimester_2", "TRIMESTER 2")}</Text>
+          <Text style={styles.progressLabel}>{t("due_date_label", "DUE DATE")}</Text>
+        </View>
+
+        <View style={styles.trimesterRow}>
+          <View style={styles.trimesterIcon}>
+            <Heart size={14} color={colors.brand} />
+          </View>
+          <View style={styles.trimesterTextWrap}>
+            <Text style={styles.trimesterTitle}>{currentTrimesterTitle}</Text>
+            <Text style={styles.trimesterSub}>{currentTrimesterRange}</Text>
+          </View>
+          <View style={styles.activeBadge}>
+            <Text style={styles.activeBadgeText}>{t("active", "Active")}</Text>
+          </View>
+        </View>
+
+        <View style={styles.timelineWrap}>
+          {milestones.map((item, idx) => {
+            const isCompleted = week >= item.weekNum;
+            const itemTitle = t(item.key, item.title);
+            const weekText = `${t("week_prefix", "WEEK")} ${item.weekNum}`;
+            return (
+              <View key={item.key} style={styles.timelineRow}>
+                <View style={styles.timelineLeft}>
+                  <View style={[styles.timelineDot, isCompleted && styles.timelineDotCompleted]}>
+                    {isCompleted ? <CheckCircle2 size={10} color="#FFF" /> : null}
+                  </View>
+                  {idx < milestones.length - 1 ? (
+                    <View style={[styles.timelineLine, isCompleted && styles.timelineLineCompleted]} />
+                  ) : null}
+                </View>
+                <View>
+                  <Text style={[styles.timelineTitle, isCompleted && styles.timelineTitleCompleted]}>
+                    {itemTitle} {isCompleted ? " ✓" : ""}
+                  </Text>
+                  <Text style={styles.timelineWeek}>{weekText}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Pink-Themed Personal Pregnancy Diary Card */}
+      <View style={styles.diarySectionHead}>
+        <View style={styles.diaryHeadLeft}>
+          <Sparkles size={14} color="#E91E63" />
+          <Text style={styles.diarySectionTitle}>{t("personal_diary", "PERSONAL DIARY")}</Text>
+        </View>
+        <View style={styles.privateBadge}>
+          <Lock size={11} color="#C2185B" />
+          <Text style={styles.privateBadgeText}>{t("private_locked", "PRIVATE & LOCKED")}</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={styles.diaryCard}
+        onPress={() => setIsDiaryOpen(true)}
+        activeOpacity={0.88}
+        accessibilityRole="button"
+        accessibilityLabel="Open personal pregnancy diary"
+      >
+        <View style={styles.diaryCardLeft}>
+          <View style={styles.diaryIconWrap}>
+            <Heart size={26} color="#C2185B" fill="#F48FB1" />
+            <View style={styles.miniPadlockBadge}>
+              <Lock size={10} color="#D4AF37" />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.diaryCardContent}>
+          <Text style={styles.diaryCardTitle}>{t("secret_pregnancy_journal", "Secret Pregnancy Journal")}</Text>
+          <Text style={styles.diaryCardSubtitle}>
+            {t("secret_journal_subtitle", "Pink vintage diary with heart key lock. Record your thoughts, struggles & activities from Day 1 to labor.")}
+          </Text>
+          <View style={styles.diaryCardFooter}>
+            <View style={styles.diaryFooterPill}>
+              <Text style={styles.diaryCardTag}>🌸 {t("day_prefix", "Day")} 1 {t("to", "to")} 280 • {t("daily_sealed_records", "Daily Sealed Records")}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.diaryCardArrow}>
+          <ChevronRight size={22} color="#C2185B" />
+        </View>
+      </TouchableOpacity>
+
+      <View style={styles.dropdownWrap}>
+        <TouchableOpacity style={styles.dropdownHeader} onPress={() => setIsClinicianOpen((prev) => !prev)}>
+          <View style={styles.featureHeadLeft}>
+            <View style={styles.featureHeadIconWrap}>
+              <FileText size={14} color={colors.brand} />
+            </View>
+            <Text style={styles.sectionTitle}>{t("clinician_share_report", "CLINICIAN SHARE REPORT")}</Text>
+          </View>
+          {isClinicianOpen ? <ChevronUp size={16} color="#7E8FAF" /> : <ChevronDown size={16} color="#7E8FAF" />}
+        </TouchableOpacity>
+
+        {isClinicianOpen ? (
+          <View style={styles.featureCard}>
+            <Text style={styles.featureSubtitle}>{t("clinician_report_subtitle", "Prepare and share a concise report before appointments.")}</Text>
+
+            <View style={styles.vitalsRow}>
+              <TextInput
+                value={reportDraft.bpSystolic}
+                onChangeText={(value) => setReportDraft((prev) => ({ ...prev, bpSystolic: value }))}
+                placeholder={t("bp_sys", "BP SYS")}
+                placeholderTextColor="#9EAAC2"
+                keyboardType="numeric"
+                style={styles.vitalsInput}
+              />
+              <TextInput
+                value={reportDraft.bpDiastolic}
+                onChangeText={(value) => setReportDraft((prev) => ({ ...prev, bpDiastolic: value }))}
+                placeholder={t("bp_dia", "BP DIA")}
+                placeholderTextColor="#9EAAC2"
+                keyboardType="numeric"
+                style={styles.vitalsInput}
+              />
+              <TextInput
+                value={reportDraft.temperatureC}
+                onChangeText={(value) => setReportDraft((prev) => ({ ...prev, temperatureC: value }))}
+                placeholder={t("temp_c", "Temp C")}
+                placeholderTextColor="#9EAAC2"
+                keyboardType="decimal-pad"
+                style={styles.vitalsInput}
+              />
+              <TextInput
+                value={reportDraft.glucoseMgDl}
+                onChangeText={(value) => setReportDraft((prev) => ({ ...prev, glucoseMgDl: value }))}
+                placeholder={t("glucose", "Glucose")}
+                placeholderTextColor="#9EAAC2"
+                keyboardType="decimal-pad"
+                style={styles.vitalsInput}
+              />
+            </View>
+
+            <TextInput
+              value={reportDraft.medications}
+              onChangeText={(value) => setReportDraft((prev) => ({ ...prev, medications: value }))}
+              placeholder={t("medications_placeholder", "Medication and supplements")}
+              placeholderTextColor="#9EAAC2"
+              multiline
+              style={styles.featureTextArea}
+            />
+
+            <TextInput
+              value={reportDraft.questions}
+              onChangeText={(value) => setReportDraft((prev) => ({ ...prev, questions: value }))}
+              placeholder={t("questions_placeholder", "Questions for your clinician")}
+              placeholderTextColor="#9EAAC2"
+              multiline
+              style={styles.featureTextArea}
+            />
+
+            <View style={styles.featureActionsRow}>
+              <TouchableOpacity style={styles.secondaryActionBtn} onPress={() => onSaveClinicianDraft().catch(() => undefined)}>
+                <Text style={styles.secondaryActionText}>{t("save_draft", "Save Draft")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.primaryActionBtn} onPress={() => onGenerateReport().catch(() => undefined)}>
+                <Text style={styles.primaryActionText}>{reportBusy ? t("generating", "Generating...") : t("generate", "Generate")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryActionBtn} onPress={() => onShareReport().catch(() => undefined)}>
+                <Text style={styles.secondaryActionText}>{t("share", "Share")}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {reportSummary ? (
+              <View style={styles.reportPreviewWrap}>
+                <Text style={styles.reportPreviewTitle}>{t("preview", "Preview")}</Text>
+                <Text numberOfLines={12} style={styles.reportPreviewText}>{reportSummary}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+
+      <View style={styles.dropdownWrap}>
+        <TouchableOpacity style={styles.dropdownHeader} onPress={() => setIsInsuranceOpen((prev) => !prev)}>
+          <View style={styles.featureHeadLeft}>
+            <View style={styles.featureHeadIconWrap}>
+              <ShieldCheck size={14} color={colors.brand} />
+            </View>
+            <Text style={styles.sectionTitle}>{t("insurance_claims_hub", "INSURANCE & CLAIMS HUB")}</Text>
+          </View>
+          {isInsuranceOpen ? <ChevronUp size={16} color="#7E8FAF" /> : <ChevronDown size={16} color="#7E8FAF" />}
+        </TouchableOpacity>
+
+        {isInsuranceOpen ? (
+          <View style={styles.featureCard}>
+            <Text style={styles.featureSubtitle}>{t("insurance_subtitle", "Store policy details, estimate coverage, and track claim submissions.")}</Text>
+
+            <TextInput
+              value={policyForm.provider}
+              onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, provider: value }))}
+              placeholder={t("provider", "Provider")}
+              placeholderTextColor="#9EAAC2"
+              style={styles.featureInput}
+            />
+            <TextInput
+              value={policyForm.policyNumber}
+              onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, policyNumber: value }))}
+              placeholder={t("policy_number", "Policy number")}
+              placeholderTextColor="#9EAAC2"
+              style={styles.featureInput}
+            />
+
+          <View style={styles.doubleRow}>
+          <TextInput
+            value={policyForm.maternityCoveragePercent}
+            onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, maternityCoveragePercent: value }))}
+            placeholder={t("coverage_percent", "Coverage %")}
+            placeholderTextColor="#9EAAC2"
+            keyboardType="decimal-pad"
+            style={styles.featureInputHalf}
+          />
+          <TextInput
+            value={policyForm.renewalDate}
+            onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, renewalDate: value }))}
+            placeholder={t("renewal_date_placeholder", "Renewal YYYY-MM-DD")}
+            placeholderTextColor="#9EAAC2"
+            style={styles.featureInputHalf}
+          />
+          </View>
+
+          <View style={styles.doubleRow}>
+          <TextInput
+            value={policyForm.deductible}
+            onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, deductible: value }))}
+            placeholder={t("deductible", "Deductible")}
+            placeholderTextColor="#9EAAC2"
+            keyboardType="decimal-pad"
+            style={styles.featureInputHalf}
+          />
+          <TextInput
+            value={policyForm.outOfPocketLimit}
+            onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, outOfPocketLimit: value }))}
+            placeholder={t("out_of_pocket", "Out-of-pocket")}
+            placeholderTextColor="#9EAAC2"
+            keyboardType="decimal-pad"
+            style={styles.featureInputHalf}
+          />
+          </View>
+
+            <TextInput
+              value={policyForm.maternityCoverLimit}
+              onChangeText={(value) => setPolicyForm((prev) => ({ ...prev, maternityCoverLimit: value }))}
+              placeholder={t("maternity_cover_limit", "Maternity cover limit")}
+              placeholderTextColor="#9EAAC2"
+              keyboardType="decimal-pad"
+              style={styles.featureInput}
+            />
+
+            <TouchableOpacity style={styles.primaryActionBtn} onPress={() => onSavePolicy().catch(() => undefined)}>
+              <Text style={styles.primaryActionText}>{t("save_policy", "Save Policy")}</Text>
+            </TouchableOpacity>
+
+          <View style={styles.estimatorCard}>
+          <Text style={styles.estimatorTitle}>{t("coverage_estimator", "Coverage Estimator")}</Text>
+          <TextInput
+            value={coverageEstimator}
+            onChangeText={setCoverageEstimator}
+            placeholder={t("expected_maternity_expense", "Expected maternity expense")}
+            placeholderTextColor="#9EAAC2"
+            keyboardType="decimal-pad"
+            style={styles.featureInput}
+          />
+          <Text style={styles.estimatorLine}>{t("estimated_covered", "Estimated covered")}: {cappedCovered.toFixed(0)}</Text>
+          <Text style={styles.estimatorLine}>{t("estimated_out_of_pocket", "Estimated out-of-pocket")}: {outOfPocketEstimate.toFixed(0)}</Text>
+          <Text style={styles.estimatorHint}>{t("estimator_hint", "Applies your stored coverage percent and maternity cap.")}</Text>
+          </View>
+
+            <Text style={styles.claimTitle}>{t("claims_title", "Claims")}</Text>
+            <TextInput
+              value={claimForm.title}
+              onChangeText={(value) => setClaimForm((prev) => ({ ...prev, title: value }))}
+              placeholder={t("claim_title", "Claim title")}
+              placeholderTextColor="#9EAAC2"
+              style={styles.featureInput}
+            />
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statusRow}>
+          {claimStatuses.map((status) => {
+            const active = claimForm.status === status;
+            return (
+              <TouchableOpacity
+                key={status}
+                style={[styles.statusChip, active && styles.statusChipActive]}
+                onPress={() => setClaimForm((prev) => ({ ...prev, status }))}
+              >
+                <Text style={[styles.statusChipText, active && styles.statusChipTextActive]}>{t(`claim_status_${status}`, status.replace("_", " "))}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          </ScrollView>
+
+          <View style={styles.doubleRow}>
+          <TextInput
+            value={claimForm.estimatedAmount}
+            onChangeText={(value) => setClaimForm((prev) => ({ ...prev, estimatedAmount: value }))}
+            placeholder={t("estimated_amount", "Estimated amount")}
+            placeholderTextColor="#9EAAC2"
+            keyboardType="decimal-pad"
+            style={styles.featureInputHalf}
+          />
+          <TextInput
+            value={claimForm.submissionDeadline}
+            onChangeText={(value) => setClaimForm((prev) => ({ ...prev, submissionDeadline: value }))}
+            placeholder={t("submission_deadline", "Deadline YYYY-MM-DD")}
+            placeholderTextColor="#9EAAC2"
+            style={styles.featureInputHalf}
+          />
+          </View>
+
+            <TextInput
+              value={claimForm.notes}
+              onChangeText={(value) => setClaimForm((prev) => ({ ...prev, notes: value }))}
+              placeholder={t("claim_notes", "Claim notes")}
+              placeholderTextColor="#9EAAC2"
+              multiline
+              style={styles.featureTextArea}
+            />
+
+            <TouchableOpacity style={styles.primaryActionBtn} onPress={() => onSaveClaim().catch(() => undefined)}>
+              <Text style={styles.primaryActionText}>{t("save_claim", "Save Claim")}</Text>
+            </TouchableOpacity>
+
+          <View style={styles.claimListWrap}>
+          {claims.length === 0 ? (
+            <Text style={styles.claimEmptyText}>{t("no_claims_yet", "No claims yet.")}</Text>
+          ) : (
+            claims.map((claim) => {
+              const claimDocs = claimDocsMap[claim.id] ?? [];
+              const dueIn = daysUntil(claim.submission_deadline);
+              return (
+                <View key={claim.id} style={styles.claimItemCard}>
+                  <View style={styles.claimItemTop}>
+                    <Text style={styles.claimItemTitle}>{claim.title}</Text>
+                    <View style={styles.claimStatusBadge}>
+                      <Text style={styles.claimStatusText}>{t(`claim_status_${claim.status}`, claim.status.replace("_", " "))}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.claimItemMeta}>{t("amount_label", "Amount")}: {claim.estimated_amount ?? "--"}</Text>
+                  <Text style={styles.claimItemMeta}>{t("deadline_label", "Deadline")}: {claim.submission_deadline ?? "--"}</Text>
+                  {dueIn !== null ? (
+                    <Text style={[styles.claimItemMeta, dueIn <= 3 ? styles.claimItemUrgent : undefined]}>
+                      {dueIn >= 0 ? `${t("reminder_due_in", "Reminder: due in")} ${dueIn} ${t("days_label", "day(s)")}` : `${t("reminder_overdue_by", "Reminder: overdue by")} ${Math.abs(dueIn)} ${t("days_label", "day(s)")}`}
+                    </Text>
+                  ) : null}
+
+                  <TouchableOpacity
+                    style={styles.secondaryActionBtn}
+                    onPress={() => onUploadClaimDocument(claim.id).catch(() => undefined)}
+                  >
+                    <Text style={styles.secondaryActionText}>{t("upload_document", "Upload Document")}</Text>
+                  </TouchableOpacity>
+
+                  {claimDocs.length > 0 ? (
+                    <View style={styles.docListWrap}>
+                      {claimDocs.map((doc) => (
+                        <Text key={doc.id} style={styles.docItemText}>• {doc.name}</Text>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.docEmptyText}>{t("no_documents_attached", "No documents attached.")}</Text>
+                  )}
+                </View>
+              );
+            })
+          )}
+            </View>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Account & Security Section */}
+      <View style={styles.accountSection}>
+        <Text style={styles.sectionTitle}>{t("account_security", "ACCOUNT & SECURITY")}</Text>
+        <View style={styles.accountCard}>
+          <View style={styles.accountInfoRow}>
+            <View style={styles.accountIconWrap}>
+              <UserCheck size={20} color={colors.skyBlueDeep} />
+            </View>
+            <View style={styles.accountDetails}>
+              <Text style={styles.accountEmailText}>
+                {currentUser?.email || profile?.email || "Offline Local Account"}
+              </Text>
+              <Text style={styles.accountStatusText}>
+                {t("authenticated_session", "Authenticated Session • Offline Database Protected")}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.signOutBtn}
+            onPress={onSignOutPress}
+            activeOpacity={0.8}
+          >
+            <LogOut size={16} color={colors.danger} />
+            <Text style={styles.signOutBtnText}>{t("sign_out_button", "Sign Out / Switch Account")}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Modal
+        visible={isSettingsOpen}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsSettingsOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>{t("edit_profile_settings", "Edit Profile Settings")}</Text>
+              <TouchableOpacity onPress={() => setIsSettingsOpen(false)}>
+                <Text style={styles.closeText}>{t("cancel", "Cancel")}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.modalScroll} keyboardShouldPersistTaps="handled">
+              {settingsError ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorBoxText}>{settingsError}</Text>
+                </View>
+              ) : null}
+
+              <Text style={styles.modalLabel}>{t("first_name_required", "First Name *")}</Text>
+              <TextInput
+                value={settingsForm.name}
+                onChangeText={(text) => {
+                  setSettingsForm((f) => ({ ...f, name: text }));
+                  validateName(text);
+                }}
+                placeholder={t("first_name_placeholder", "e.g. Priya")}
+                placeholderTextColor="#7A7A7A"
+                accessibilityLabel="First Name"
+                accessibilityHint="Required. Letters, spaces, hyphens, periods, and apostrophes only."
+                style={[styles.modalInput, settingsFieldErrors.name ? styles.modalInputError : undefined]}
+              />
+              {settingsFieldErrors.name ? <Text style={styles.fieldErrorText}>{settingsFieldErrors.name}</Text> : null}
+
+              <Text style={styles.modalLabel}>{t("due_date_required", "Due Date (YYYY-MM-DD) *")}</Text>
+              <TouchableOpacity
+                style={[styles.datePickerButton, settingsFieldErrors.dueDate ? styles.modalInputError : undefined]}
+                onPress={() => setShowDueDatePicker((current) => !current)}
+                accessibilityRole="button"
+                accessibilityLabel="Open due date calendar"
+                accessibilityHint="Required. Opens the calendar to choose your due date."
+              >
+                <Text style={[styles.datePickerButtonText, !settingsForm.dueDate && styles.datePickerPlaceholder]}>
+                  {settingsForm.dueDate && settingsDueDateValue ? formatDateForDisplay(settingsDueDateValue) : t("select_due_date", "Select due date")}
+                </Text>
+                <CalendarDays size={16} color={settingsForm.dueDate ? colors.brand : "#8EA0C2"} />
+              </TouchableOpacity>
+              {settingsFieldErrors.dueDate ? <Text style={styles.fieldErrorText}>{settingsFieldErrors.dueDate}</Text> : null}
+              {showDueDatePicker ? (
+                <View style={styles.pickerWrap}>
+                  <DateTimePicker
+                    value={settingsDueDateValue ?? new Date()}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    minimumDate={minDueDate}
+                    maximumDate={maxDueDate}
+                    onChange={onDueDatePickerChange}
+                  />
+                  {Platform.OS === "ios" ? (
+                    <TouchableOpacity style={styles.pickerDoneBtn} onPress={() => setShowDueDatePicker(false)}>
+                      <Text style={styles.pickerDoneText}>{t("done", "Done")}</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : null}
+
+              <Text style={styles.modalLabel}>{t("blood_type_label", "Blood Type (Optional)")}</Text>
+              <TextInput
+                value={settingsForm.bloodType}
+                onChangeText={(text) => {
+                  const nextValue = text.toUpperCase();
+                  setSettingsForm((f) => ({ ...f, bloodType: nextValue }));
+                  validateBloodType(nextValue);
+                }}
+                placeholder="e.g. O+ / B-"
+                placeholderTextColor="#7A7A7A"
+                accessibilityLabel="Blood Type"
+                accessibilityHint="Optional. Enter one of the supported blood types."
+                style={[styles.modalInput, settingsFieldErrors.bloodType ? styles.modalInputError : undefined]}
+              />
+              {settingsFieldErrors.bloodType ? <Text style={styles.fieldErrorText}>{settingsFieldErrors.bloodType}</Text> : null}
+
+              <Text style={styles.modalLabel}>{t("doctor_name_label", "Doctor Name (Optional)")}</Text>
+              <TextInput
+                value={settingsForm.doctorName}
+                onChangeText={(text) => {
+                  setSettingsForm((f) => ({ ...f, doctorName: text }));
+                  validateDoctorName(text);
+                }}
+                placeholder="e.g. Dr. Alpa"
+                placeholderTextColor="#7A7A7A"
+                accessibilityLabel="Doctor Name"
+                accessibilityHint="Optional. Letters, spaces, hyphens, periods, and apostrophes only."
+                style={[styles.modalInput, settingsFieldErrors.doctorName ? styles.modalInputError : undefined]}
+              />
+              {settingsFieldErrors.doctorName ? <Text style={styles.fieldErrorText}>{settingsFieldErrors.doctorName}</Text> : null}
+
+              <Text style={styles.modalLabel}>{t("doctor_phone_label", "Doctor Phone (Optional)")}</Text>
+              <TextInput
+                value={settingsForm.doctorPhone}
+                onChangeText={(text) => {
+                  setSettingsForm((f) => ({ ...f, doctorPhone: text }));
+                  validateDoctorPhone(text);
+                }}
+                placeholder="e.g. +91 98765 43210"
+                placeholderTextColor="#7A7A7A"
+                accessibilityLabel="Doctor Phone"
+                accessibilityHint="Optional. Enter a valid phone number."
+                style={[styles.modalInput, settingsFieldErrors.doctorPhone ? styles.modalInputError : undefined]}
+                keyboardType="phone-pad"
+              />
+              {settingsFieldErrors.doctorPhone ? <Text style={styles.fieldErrorText}>{settingsFieldErrors.doctorPhone}</Text> : null}
+
+              <Text style={styles.modalLabel}>{t("preferred_voice_label", "Preferred Voice (Optional)")}</Text>
+              <TextInput
+                value={settingsForm.preferredVoice}
+                onChangeText={(text) => {
+                  setSettingsForm((f) => ({ ...f, preferredVoice: text }));
+                  validatePreferredVoice();
+                }}
+                placeholder="e.g. en-US-language"
+                placeholderTextColor="#7A7A7A"
+                accessibilityLabel="Preferred Voice"
+                accessibilityHint="Optional. This value is used for spoken summaries."
+                style={[styles.modalInput, settingsFieldErrors.preferredVoice ? styles.modalInputError : undefined]}
+              />
+              {settingsFieldErrors.preferredVoice ? <Text style={styles.fieldErrorText}>{settingsFieldErrors.preferredVoice}</Text> : null}
+
+              <TouchableOpacity onPress={onSaveSettings} style={styles.modalSaveBtn}>
+                <Text style={styles.modalSaveBtnText}>{t("save_settings", "Save Settings")}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Avatar Selector Modal */}
+      <Modal
+        visible={isAvatarModalOpen}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsAvatarModalOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.avatarModalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>{t("change_profile_photo", "Change Profile Photo")}</Text>
+              <TouchableOpacity onPress={() => setIsAvatarModalOpen(false)}>
+                <Text style={styles.closeText}>{t("close", "Close")}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.avatarModalContent}>
+              <TouchableOpacity style={styles.uploadPhotoBtn} onPress={onPickCustomAvatar}>
+                <Camera size={20} color="#FFF" />
+                <Text style={styles.uploadPhotoBtnText}>{t("upload_from_device", "Upload from Device")}</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.presetHeading}>{t("or_choose_avatar", "Or Choose an Avatar")}</Text>
+              <View style={styles.presetRow}>
+                {[
+                  { id: "preset:1", emoji: "👩‍🍼", label: "Mama" },
+                  { id: "preset:2", emoji: "🌸", label: "Bloom" },
+                  { id: "preset:3", emoji: "💖", label: "Heart" },
+                  { id: "preset:4", emoji: "✨", label: "Joy" },
+                ].map((preset) => (
+                  <TouchableOpacity
+                    key={preset.id}
+                    style={[
+                      styles.presetItem,
+                      profileAvatarUri === preset.id && styles.presetItemActive,
+                    ]}
+                    onPress={() => onSelectPresetAvatar(preset.id)}
+                  >
+                    <Text style={styles.presetEmoji}>{preset.emoji}</Text>
+                    <Text style={styles.presetLabel}>{preset.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <PersonalDiaryModal
+        visible={isDiaryOpen}
+        onClose={() => setIsDiaryOpen(false)}
+        dueDateStr={profile?.due_date}
+      />
+
+      <View style={styles.bottomPad} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#F6F6F8",
+  },
+  content: {
+    paddingTop: 18,
+    paddingHorizontal: 16,
+    gap: 14,
+    paddingBottom: 120,
+  },
+  headerWrap: {
+    marginTop: 20,
+    position: "relative",
+    zIndex: 120,
+    elevation: 30,
+    overflow: "visible",
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  logoCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: colors.brand,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  logoText: {
+    fontFamily: fonts.serif,
+    fontSize: 16,
+    color: "#252A39",
+  },
+  aiRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 1,
+  },
+  aiDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: "#25C45E",
+  },
+  aiText: {
+    color: "#8B93AE",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    position: "relative",
+    zIndex: 140,
+  },
+  pillBtn: {
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#F5F6FA",
+    borderWidth: 1,
+    borderColor: "#ECECF1",
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  pillBtnText: {
+    color: "#596079",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  iconPillBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#FFF1F5",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#FDE2EA",
+  },
+  emergencyPillBtn: {
+    flexDirection: "row",
+    gap: 4,
+    paddingHorizontal: 8,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#D6285A",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#D6285A",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  emergencyPillText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  avatarSection: {
+    alignItems: "center",
+    marginTop: 12,
+    position: "relative",
+  },
+  avatarWrap: {
+    width: 96,
+    height: 96,
+    borderRadius: 32,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: colors.brand,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 7,
+  },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 32,
+  },
+  presetAvatarBox: {
+    width: 96,
+    height: 96,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFE8F0",
+  },
+  avatarCameraBadge: {
+    position: "absolute",
+    bottom: -4,
+    right: -4,
+    backgroundColor: colors.brand,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.white,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  avatarModalContainer: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    width: "100%",
+  },
+  avatarModalContent: {
+    paddingVertical: 16,
+  },
+  uploadPhotoBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: colors.brand,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginBottom: 20,
+  },
+  uploadPhotoBtnText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  presetHeading: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.6,
+    marginBottom: 12,
+  },
+  presetRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  presetItem: {
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    width: 68,
+  },
+  presetItemActive: {
+    borderColor: colors.brand,
+    backgroundColor: "#FFE8F0",
+  },
+  presetEmoji: {
+    fontSize: 26,
+    marginBottom: 4,
+  },
+  presetLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#475569",
+  },
+  timelineDotCompleted: {
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timelineLineCompleted: {
+    backgroundColor: colors.brand,
+  },
+  timelineTitleCompleted: {
+    color: colors.brand,
+    fontWeight: "800",
+  },
+  settingsBtn: {
+    position: "absolute",
+    top: 62,
+    right: 118,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: "#EAEFF8",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+    elevation: 10,
+  },
+  nameText: {
+    marginTop: 14,
+    fontFamily: fonts.serif,
+    fontSize: 34 / 2,
+    fontStyle: "italic",
+    color: "#1D2E52",
+  },
+  weekText: {
+    marginTop: 8,
+    color: "#8EA0C2",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+  },
+  journeyHead: {
+    marginTop: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    color: "#8EA0C2",
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 2,
+  },
+  completeText: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  journeyCard: {
+    marginTop: 8,
+    backgroundColor: colors.white,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "#ECEFF6",
+    overflow: "hidden",
+    shadowColor: "#1B2A52",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  progressMetaRow: {
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  progressMeta: {
+    color: "#8193B3",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  progressCount: {
+    color: "#657BA4",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  progressBarTrack: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  progressBarBase: {
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#EFF3F9",
+  },
+  progressBarFill: {
+    position: "absolute",
+    left: 20,
+    top: 0,
+    bottom: 0,
+    borderRadius: 7,
+    backgroundColor: "#DDE4F1",
+    height: 14,
+  },
+  progressLabelsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEF2F8",
+  },
+  progressLabel: {
+    color: "#C0CADE",
+    fontSize: 9,
+    fontWeight: "800",
+  },
+  trimesterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEF2F8",
+  },
+  trimesterIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "#E8EDF6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  trimesterTextWrap: {
+    flex: 1,
+  },
+  trimesterTitle: {
+    color: "#1F2B4D",
+    fontSize: 28 / 2,
+    fontWeight: "800",
+    marginBottom: 3,
+  },
+  trimesterSub: {
+    color: "#8EA0C2",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  activeBadge: {
+    backgroundColor: "#FFE7ED",
+    borderRadius: 13,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  activeBadgeText: {
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  timelineWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 14,
+  },
+  timelineRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    minHeight: 56,
+  },
+  timelineLeft: {
+    width: 28,
+    alignItems: "center",
+    marginRight: 10,
+  },
+  timelineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#D8DEEB",
+    marginTop: 4,
+    zIndex: 2,
+  },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: "#E7ECF5",
+    marginTop: 2,
+  },
+  timelineTitle: {
+    color: "#8598BA",
+    fontSize: 15 / 1.02,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  timelineWeek: {
+    color: "#A3B1CC",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  activityHead: {
+    marginTop: 12,
+  },
+  activityCard: {
+    backgroundColor: colors.white,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "#ECEFF6",
+    padding: 14,
+    shadowColor: "#1B2A52",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  activityTabsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 12,
+  },
+  activityTabBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 14,
+    backgroundColor: "#F7F9FF",
+    borderWidth: 1,
+    borderColor: "#E8EDF8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activityTabBtnActive: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  activityTabText: {
+    color: "#8EA0C2",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+  activityTabTextActive: {
+    color: colors.white,
+  },
+  activityList: {
+    gap: 10,
+  },
+  activityRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    paddingHorizontal: 4,
+  },
+  activityBullet: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.brand,
+    marginTop: 6,
+  },
+  activityTextWrap: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEF2F8",
+    paddingBottom: 10,
+  },
+  activityTitle: {
+    color: "#1F2B4D",
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  activityMeta: {
+    color: "#8EA0C2",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  activityEmptyText: {
+    color: "#9CA9C4",
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "center",
+    paddingVertical: 16,
+  },
+  featureHead: {
+    marginTop: 12,
+  },
+  dropdownWrap: {
+    marginTop: 12,
+    backgroundColor: colors.white,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#ECEFF6",
+    overflow: "hidden",
+    shadowColor: "#1B2A52",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  dropdownHeader: {
+    minHeight: 56,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEF2F8",
+  },
+  featureHeadLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  featureHeadIconWrap: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#FFF0F4",
+    borderWidth: 1,
+    borderColor: "#FFD8E5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  featureCard: {
+    backgroundColor: colors.white,
+    padding: 14,
+    gap: 10,
+  },
+  featureSubtitle: {
+    color: "#7D8FB0",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  vitalsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  vitalsInput: {
+    flexBasis: "48%",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: "#223352",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  featureInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: "#223352",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  featureInputHalf: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: "#223352",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  featureTextArea: {
+    minHeight: 84,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: "#223352",
+    fontSize: 13,
+    fontWeight: "600",
+    textAlignVertical: "top",
+  },
+  featureActionsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  primaryActionBtn: {
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  primaryActionText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+  },
+  secondaryActionBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F9FBFF",
+    paddingHorizontal: 12,
+  },
+  secondaryActionText: {
+    color: "#5E739B",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  reportPreviewWrap: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F9FBFF",
+    padding: 10,
+    gap: 6,
+  },
+  reportPreviewTitle: {
+    color: "#546A93",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  reportPreviewText: {
+    color: "#2A3A5A",
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "600",
+  },
+  estimatorCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F9FBFF",
+    padding: 10,
+    gap: 6,
+  },
+  estimatorTitle: {
+    color: "#546A93",
+    fontSize: 11,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  estimatorLine: {
+    color: "#2A3A5A",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  estimatorHint: {
+    color: "#7A89A8",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  claimTitle: {
+    color: "#536993",
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginTop: 4,
+  },
+  statusRow: {
+    gap: 8,
+  },
+  statusChip: {
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F9FBFF",
+  },
+  statusChipActive: {
+    borderColor: colors.brand,
+    backgroundColor: "#FFF0F4",
+  },
+  statusChipText: {
+    color: "#5E739B",
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "capitalize",
+  },
+  statusChipTextActive: {
+    color: colors.brand,
+  },
+  doubleRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  claimListWrap: {
+    gap: 10,
+  },
+  claimItemCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#FAFCFF",
+    padding: 10,
+    gap: 6,
+  },
+  claimItemTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  claimItemTitle: {
+    flex: 1,
+    color: "#253657",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  claimStatusBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: "#FFF0F4",
+  },
+  claimStatusText: {
+    color: colors.brand,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "capitalize",
+  },
+  claimItemMeta: {
+    color: "#6E82A6",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  claimItemUrgent: {
+    color: "#B3224F",
+  },
+  docListWrap: {
+    borderTopWidth: 1,
+    borderTopColor: "#EAF0FA",
+    paddingTop: 8,
+    gap: 4,
+  },
+  docItemText: {
+    color: "#5E739B",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  docEmptyText: {
+    color: "#99A8C3",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  claimEmptyText: {
+    color: "#9CA9C4",
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "center",
+    paddingVertical: 6,
+  },
+  bottomPad: {
+    height: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    maxHeight: "85%",
+    paddingBottom: 24,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEF2F8",
+  },
+  modalHeaderTitle: {
+    fontFamily: fonts.serif,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1D2E52",
+  },
+  closeText: {
+    fontSize: 14,
+    color: "#5E739B",
+    fontWeight: "600",
+  },
+  modalScroll: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  modalLabel: {
+    color: "#5E739B",
+    fontWeight: "700",
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  modalInput: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: "#223352",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  datePickerButton: {
+    minHeight: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E7ECF6",
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  datePickerButtonText: {
+    flex: 1,
+    color: "#223352",
+    fontSize: 13,
+    fontWeight: "700",
+    marginRight: 10,
+  },
+  datePickerPlaceholder: {
+    color: "#7A7A7A",
+    fontWeight: "600",
+  },
+  modalInputError: {
+    borderColor: "#D6285A",
+    backgroundColor: "#FFF5F7",
+  },
+  pickerWrap: {
+    gap: 8,
+    marginTop: 4,
+  },
+  pickerDoneBtn: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#FFF0F4",
+  },
+  pickerDoneText: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  fieldErrorText: {
+    marginTop: 6,
+    color: "#B3224F",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  modalSaveBtn: {
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 24,
+    shadowColor: colors.brand,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  modalSaveBtnText: {
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+  },
+  errorBox: {
+    backgroundColor: "#FFF0F4",
+    borderWidth: 1,
+    borderColor: "#FDE2EA",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  errorBoxText: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  accountSection: {
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  accountCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 16,
+    borderColor: colors.border,
+    borderWidth: 1,
+    ...shadows.sm,
+  },
+  accountInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  accountIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.skyBlueSoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  accountDetails: {
+    flex: 1,
+  },
+  accountEmailText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.charcoal,
+  },
+  accountStatusText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#FEF2F2",
+    borderColor: "#FECACA",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  signOutBtnText: {
+    color: colors.danger,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  diarySectionHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  diaryHeadLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  diarySectionTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#C2185B",
+    letterSpacing: 1.2,
+  },
+  privateBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#FCE4EC",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#F8BBD0",
+  },
+  privateBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#C2185B",
+    letterSpacing: 0.6,
+  },
+  diaryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF0F5",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: "#F48FB1",
+    ...shadows.default,
+  },
+  diaryCardLeft: {
+    marginRight: 14,
+  },
+  diaryIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#FFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#F8BBD0",
+    position: "relative",
+    ...shadows.sm,
+  },
+  miniPadlockBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    backgroundColor: "#FFF",
+    borderRadius: 8,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: "#F5D77F",
+  },
+  diaryCardContent: {
+    flex: 1,
+  },
+  diaryCardTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#4A1525",
+    fontFamily: fonts.serif,
+    marginBottom: 4,
+  },
+  diaryCardSubtitle: {
+    fontSize: 12,
+    color: "#8C4A60",
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  diaryCardFooter: {
+    flexDirection: "row",
+  },
+  diaryFooterPill: {
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#F8BBD0",
+  },
+  diaryCardTag: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#C2185B",
+  },
+  diaryCardArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#FFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+    ...shadows.sm,
+  },
+});

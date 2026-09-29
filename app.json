@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Maa",
+    "slug": "maa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "maa",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBFBFE"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Maa needs your live location to share emergency SOS coordinates with doctors and find nearest maternal hospitals."
+        }
+      ],
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Maa to access your microphone for voice input.",
+          "speechRecognitionPermission": "Allow Maa to convert your speech to text."
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.local.maa",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FBFBFE"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.local.maa",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Maa uses your location to show nearby maternal-care hospitals and emergency routes."
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
